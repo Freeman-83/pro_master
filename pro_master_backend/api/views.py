@@ -1,3 +1,4 @@
+from django.contrib.auth import get_user_model
 from django.db.models import Avg
 from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
@@ -30,9 +31,10 @@ from .serializers import (ActivitySerializer,
                           ServiceSerializer,
                           ServiceContextSerializer)
 
-from users.models import CustomUser
-
 from .utils import create_relation, delete_relation
+
+
+User = get_user_model()
 
 
 class CustomUserViewSet(UserViewSet):
@@ -62,7 +64,7 @@ class MasterViewSet(CustomUserViewSet):
         return super().get_permissions()
 
     def get_queryset(self):
-        return CustomUser.objects.filter(is_master=True)
+        return User.objects.filter(is_master=True)
 
     def get_serializer_class(self):
         if self.action == "create":
@@ -92,8 +94,8 @@ class ClientViewSet(CustomUserViewSet):
 
     def get_queryset(self):
         if self.action == 'list' and not self.request.user.is_staff:
-            return CustomUser.objects.filter(is_master=True)
-        return CustomUser.objects.filter(is_master=False)
+            return User.objects.filter(is_master=True)
+        return User.objects.filter(is_master=False)
 
 
 @extend_schema(tags=['Сферы деятельности'])
