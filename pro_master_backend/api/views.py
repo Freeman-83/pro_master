@@ -46,7 +46,7 @@ class CustomUserViewSet(UserViewSet):
         return super().get_permissions()
 
 
-@extend_schema(tags=['Мастер'])
+@extend_schema(tags=['Мастера'])
 @extend_schema_view(
     list=extend_schema(summary='Получение списка мастеров'),
     create=extend_schema(summary='Создание нового мастера'),
@@ -80,7 +80,7 @@ class MasterViewSet(CustomUserViewSet):
         
 
 
-@extend_schema(tags=['Клиент'])
+@extend_schema(tags=['Клиенты'])
 @extend_schema_view(
     list=extend_schema(summary='Получение списка клиентов'),
     create=extend_schema(summary='Создание нового клиента'),
@@ -110,11 +110,6 @@ class ActivityViewSet(viewsets.ReadOnlyModelViewSet):
     pagination_class = None
     filter_backends = (DjangoFilterBackend,)
     filterset_class = ActivityFilterSet
-
-
-# class LocationViewSet(viewsets.ReadOnlyModelViewSet):
-#     queryset = Location.objects.all()
-#     serializer_class = LocationSerializer
 
 
 @extend_schema(tags=['Услуги'])

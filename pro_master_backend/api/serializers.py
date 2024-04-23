@@ -134,6 +134,18 @@ class MasterSerializer(CustomUserSerializer):
                   'first_name',
                   'last_name',
                   'services')
+        
+
+class MasterContextSerializer(CustomUserSerializer):
+    """Кастомный сериализатор профиля Мастера в других контекстах."""
+
+    class Meta:
+        model = CustomUser
+        fields = ('id',
+                  'username',
+                  'email',
+                  'first_name',
+                  'last_name')
 
 
 class ClientSerializer(CustomUserSerializer):
@@ -151,18 +163,6 @@ class ClientSerializer(CustomUserSerializer):
 
     def get_favorites_count(self, client):
         return client.favorite_services.all().count()
-
-
-class MasterContextSerializer(CustomUserSerializer):
-    """Кастомный сериализатор профиля Мастера в других контекстах."""
-
-    class Meta:
-        model = CustomUser
-        fields = ('id',
-                  'username',
-                  'email',
-                  'first_name',
-                  'last_name')
 
 
 class ActivitySerializer(serializers.ModelSerializer):
