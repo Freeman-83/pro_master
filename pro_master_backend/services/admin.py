@@ -1,28 +1,23 @@
 from django.contrib import admin
 from django.contrib.gis.admin import OSMGeoAdmin
 
-from .models import (Activity,
-                     ActivityService,
+from .models import (Category,
+                     Appointment,
                      Comment,
                      Location,
                      LocationService,
                      Review,
-                     Service)
-
-
-class ActivityInService(admin.TabularInline):
-    model = ActivityService
-    min_num = 1
-
+                     Service,
+                     Schedule)
 
 class LocationInService(admin.TabularInline):
     model = LocationService
     min_num = 1
 
 
-@admin.register(Activity)
-class ActivityAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name')
+@admin.register(Category)
+class CategoryAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name', 'parent')
     list_display_links = ('name',)
     search_fields = ('name',)
     list_filter = ('name',)
@@ -53,7 +48,7 @@ class ServiceAdmin(admin.ModelAdmin):
     list_filter = ('name', 'master')
     empty_value_display = '-пусто-'
 
-    inlines = [ActivityInService, LocationInService]
+    inlines = [LocationInService,]
 
     @admin.display(description='Количество добавлений в избранное')
     def additions_in_favorite_count(self, service):
@@ -78,17 +73,35 @@ class CommentAdmin(admin.ModelAdmin):
     empty_value_display = '-пусто-'
 
 
-@admin.register(ActivityService)
-class ActivityServiceAdmin(admin.ModelAdmin):
-    list_display = ('id', 'activity', 'service')
-    search_fields = ('activity', 'service')
-    list_filter = ('activity', 'service')
-    empty_value_display = '-пусто-'
-
-
 @admin.register(LocationService)
 class LocationServiceAdmin(admin.ModelAdmin):
     list_display = ('id', 'location', 'service')
     search_fields = ('location', 'service')
     list_filter = ('location', 'service')
     empty_value_display = '-пусто-'
+
+
+@admin.register(Schedule)
+class ScheduleAdmin(admin.ModelAdmin):
+    list_display = ('id',
+                    'service',
+                    'datetime_start',
+                    'datetime_end')
+    list_display_links = ('service',)
+    search_fields = ('service',)
+    list_filter = ('service',)
+    empty_value_display = '-пусто-'
+
+
+@admin.register(Appointment)
+class AppointmentAdmin(admin.ModelAdmin):
+    list_display = ('id',
+                    'service',
+                    'client',
+                    'appointment_datetime_start',
+                    'appointment_datetime_end')
+    list_display_links = ('service', 'client')
+    search_fields = ('service', 'client')
+    list_filter = ('service', 'client')
+    empty_value_display = '-пусто-'
+

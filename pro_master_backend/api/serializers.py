@@ -16,7 +16,7 @@ from djoser.serializers import (UserSerializer,
                                 UserCreateSerializer,
                                 TokenCreateSerializer)
 
-from services.models import (Activity,
+from services.models import (Category,
                              Comment,
                              Location,
                              LocationService,
@@ -165,11 +165,11 @@ class ClientSerializer(CustomUserSerializer):
         return client.favorite_services.all().count()
 
 
-class ActivitySerializer(serializers.ModelSerializer):
+class CategorySerializer(serializers.ModelSerializer):
     """Сериализатор Активностей."""
 
     class Meta:
-        model = Activity
+        model = Category
         fields = ('id',
                   'name',
                   'description',
@@ -262,8 +262,8 @@ class ServiceSerializer(serializers.ModelSerializer):
     master = MasterContextSerializer(
         default=serializers.CurrentUserDefault()
     )
-    activities = serializers.PrimaryKeyRelatedField(
-        queryset=Activity.objects.all(), many=True
+    category = serializers.PrimaryKeyRelatedField(
+        queryset=Category.objects.all()
     )
     locations = LocationSerializer(many=True)
     image = Base64ImageField()
@@ -277,7 +277,7 @@ class ServiceSerializer(serializers.ModelSerializer):
         fields = ('id',
                   'name',
                   'description',
-                  'activities',
+                  'category',
                   'master',
                   'locations',
                   'site_address',
@@ -325,10 +325,10 @@ class ServiceSerializer(serializers.ModelSerializer):
     @transaction.atomic
     def create(self, validated_data):
         locations_list = validated_data.pop('locations')
-        activities_list = validated_data.pop('activities')
+        # activities_list = validated_data.pop('activities')
 
         service = Service.objects.create(**validated_data)
-        service.activities.set(activities_list)
+        # service.activities.set(activities_list)
 
         for location in locations_list:
             location = self.get_location(location)
@@ -347,5 +347,5 @@ class ServiceSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
-        data['activities'] = instance.activities.values()
+        data['category'] = instance.category.values()
         return data

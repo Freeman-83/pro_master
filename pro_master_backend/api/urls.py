@@ -2,7 +2,7 @@ from django.urls import include, path
 
 from rest_framework import routers
 
-from .views import (ActivityViewSet,
+from .views import (CategoryViewSet,
                     CommentViewSet,
                     ClientViewSet,
                     MasterViewSet,
@@ -14,7 +14,7 @@ app_name = 'api'
 router = routers.DefaultRouter()
 
 router.register('services', ServiceViewSet)
-router.register('activities', ActivityViewSet)
+router.register('category', CategoryViewSet)
 router.register('users', ClientViewSet, basename='users')
 router.register('masters', MasterViewSet, basename='masters')
 router.register(

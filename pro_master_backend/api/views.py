@@ -13,9 +13,9 @@ from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from .filters import ActivityFilterSet, ServiceFilterSet
+from .filters import CategoryFilterSet, ServiceFilterSet
 
-from services.models import (Activity,
+from services.models import (Category,
                              Favorite,
                              Location,
                              Service,
@@ -23,7 +23,7 @@ from services.models import (Activity,
 
 from .permissions import IsAdminOrMasterOrReadOnly, IsAdminOrAuthorOrReadOnly
 
-from .serializers import (ActivitySerializer,
+from .serializers import (CategorySerializer,
                           CommentSerializer,
                           LocationSerializer,
                           MasterContextSerializer,
@@ -103,13 +103,13 @@ class ClientViewSet(CustomUserViewSet):
     list=extend_schema(summary='Список сфер деятельности'),
     retrieve=extend_schema(summary='Сфера деятельности'),
 )
-class ActivityViewSet(viewsets.ReadOnlyModelViewSet):
-    """Вьюсет Активностей."""
-    queryset = Activity.objects.all()
-    serializer_class = ActivitySerializer
+class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
+    """Вьюсет Категории."""
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
     pagination_class = None
     filter_backends = (DjangoFilterBackend,)
-    filterset_class = ActivityFilterSet
+    filterset_class = CategoryFilterSet
 
 
 @extend_schema(tags=['Услуги'])

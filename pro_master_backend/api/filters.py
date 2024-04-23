@@ -3,15 +3,15 @@ from django_filters.rest_framework import (FilterSet,
                                            CharFilter,
                                            ModelMultipleChoiceFilter)
 
-from services.models import (Activity,
+from services.models import (Category,
                              Service)
 
 
-class ActivityFilterSet(FilterSet):
+class CategoryFilterSet(FilterSet):
     name = CharFilter(field_name='name', lookup_expr='istartswith')
 
     class Meta:
-        model = Activity
+        model = Category
         fields = ('name',)
 
 
@@ -20,7 +20,7 @@ class ServiceFilterSet(FilterSet):
     activities = ModelMultipleChoiceFilter(
         field_name='activity__slug',
         to_field_name='slug',
-        queryset=Activity.objects.all()
+        queryset=Category.objects.all()
     )
     is_favorited = BooleanFilter(
         field_name='in_favorite_for_clients',

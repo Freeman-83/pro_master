@@ -11,16 +11,24 @@ from phonenumber_field.modelfields import PhoneNumberField
 User = get_user_model()
 
 
-class Activity(models.Model):
-    """Модель Активности."""
+class Category(models.Model):
+    """Модель Категории."""
     name = models.CharField('Вид деятельности', unique=True, max_length=256)
     description = models.TextField('Описание', null=False, blank=False)
     slug = models.SlugField('Slug', unique=True, max_length=200)
+    parent = models.ForeignKey(
+        'self',
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
+        verbose_name='Родительская категория',
+        related_name='categories'
+    )
 
     class Meta:
         ordering = ['name']
-        verbose_name = 'Activity'
-        verbose_name_plural = 'Activities'
+        verbose_name = 'Category'
+        verbose_name_plural = 'Categories'
 
     def __str__(self):
         return self.name
@@ -53,10 +61,11 @@ class Service(models.Model):
         verbose_name='Мастер',
         related_name='services'
     )
-    activities = models.ManyToManyField(
-        Activity,
-        through='ActivityService',
-        verbose_name='Вид деятельности'
+    category = models.ForeignKey(
+        Category,
+        on_delete=models.CASCADE,
+        verbose_name='Вид деятельности',
+        related_name='services'
     )
     locations = models.ManyToManyField(
         Location,
@@ -150,31 +159,6 @@ class Comment(models.Model):
         verbose_name_plural = 'Comments'
 
 
-class ActivityService(models.Model):
-    """Модель отношений Активность-Сервис."""
-    activity = models.ForeignKey(
-        Activity,
-        on_delete=models.CASCADE,
-        related_name='in_services'
-    )
-    service = models.ForeignKey(
-        Service,
-        on_delete=models.CASCADE,
-        related_name='in_activities'
-    )
-
-    class Meta:
-        ordering = ['activity']
-        verbose_name_plural = 'Activities Services'
-        constraints = [
-            models.UniqueConstraint(fields=['activity', 'service'],
-                                    name='unique_activity_service')
-        ]
-
-    def __str__(self):
-        return f'{self.activity} {self.service}'
-
-
 class LocationService(models.Model):
     """Модель отношений Локация-Сервис."""
     location = models.ForeignKey(
@@ -222,3 +206,77 @@ class Favorite(models.Model):
 
     def __str__(self):
         return f'{self.client} {self.service}'
+
+
+class Schedule(models.Model):
+    """Модель Расписания услуги."""
+    service = models.ForeignKey(
+        Service,
+        on_delete=models.CASCADE,
+        verbose_name='Услуга',
+        related_name='schedules'
+    )
+    datetime_start = models.DateTimeField(
+        'Начало интервала расписания',
+        unique=True
+    )
+    datetime_end = models.DateTimeField(
+        'Конец интервала расписания',
+        unique=True
+    )
+
+    class Meta:
+        ordering = ['datetime_start']
+        verbose_name = 'Schedule'
+        verbose_name_plural = 'Schedules'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['service', 'datetime_start', 'datetime_end'],
+                name='unique_shedule')
+        ]
+
+    def __str__(self):
+        return f'{self.datetime_start} {self.datetime_end}'
+
+
+class Appointment(models.Model):
+    """Модель Записи на услугу."""
+    service = models.ForeignKey(
+        Service,
+        on_delete=models.CASCADE,
+        verbose_name='Услуга',
+        related_name='appointments'
+    )
+    client = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        verbose_name='Клиент',
+        related_name='appointments'
+    )
+    appointment_datetime_start = models.ForeignKey(
+        Schedule,
+        to_field='datetime_start',
+        on_delete=models.CASCADE,
+        verbose_name='Начало интервала записи',
+        related_name='appointments_start'
+    )
+    appointment_datetime_end = models.ForeignKey(
+        Schedule,
+        to_field='datetime_end',
+        on_delete=models.CASCADE,
+        verbose_name='Конец интервала записи',
+        related_name='appointments_end'
+    )
+
+    class Meta:
+        ordering = ['appointment_datetime_start']
+        verbose_name = 'Appointment'
+        verbose_name_plural = 'Appointments'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['service', 'client', 'appointment_datetime_start'],
+                name='unique_appointment')
+        ]
+
+    def __str__(self):
+        return f'{self.service} {self.client}'
