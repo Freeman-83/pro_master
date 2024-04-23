@@ -8,7 +8,11 @@ from phonenumber_field.modelfields import PhoneNumberField
 
 class CustomUser(AbstractUser):
     """Кастомная модель пользователя."""
-    username = models.CharField('Логин', max_length=150, unique=True)
+    username = models.CharField(
+        'Логин/Наименование организации',
+        max_length=150,
+        unique=True
+    )
     email = models.EmailField(
         _('email'),
         max_length=254,
@@ -16,9 +20,21 @@ class CustomUser(AbstractUser):
         null=False,
         blank=False
     )
-    first_name = models.CharField('Имя', max_length=150)
-    last_name = models.CharField('Фамилия', max_length=150)
-    phone_number = PhoneNumberField('Номер телефона', unique=True)
+    first_name = models.CharField(
+        'Имя',
+        max_length=64,
+        default='anonimous'
+    )
+    last_name = models.CharField(
+        'Фамилия',
+        max_length=64,
+        null=True,
+        blank=True
+    )
+    phone_number = PhoneNumberField(
+        'Номер телефона',
+        unique=True
+    )
     photo = models.ImageField(
         'Фото профиля',
         upload_to='users/image/',
@@ -39,3 +55,6 @@ class CustomUser(AbstractUser):
                 name='unique_user'
             ),
         ]
+
+    def __str__(self) -> str:
+        return self.username

@@ -4,15 +4,15 @@ from django.contrib.gis.admin import OSMGeoAdmin
 from .models import (Category,
                      Appointment,
                      Comment,
-                     Location,
-                     LocationService,
+                    #  Location,
+                    #  LocationService,
                      Review,
                      Service,
                      Schedule)
 
-class LocationInService(admin.TabularInline):
-    model = LocationService
-    min_num = 1
+# class LocationInService(admin.TabularInline):
+#     model = LocationService
+#     min_num = 1
 
 
 @admin.register(Category)
@@ -25,30 +25,30 @@ class CategoryAdmin(admin.ModelAdmin):
     empty_value_display = '-пусто-'
 
 
-@admin.register(Location)
-class LocationAdmin(OSMGeoAdmin):
-    list_display = ('id',
-                    'address',
-                    'point')
-    list_display_links = ('address',)
-    search_fields = ('address',)
-    list_filter = ('address',)
-    empty_value_display = '-пусто-'
+# @admin.register(Location)
+# class LocationAdmin(OSMGeoAdmin):
+#     list_display = ('id',
+#                     'address',
+#                     'point')
+#     list_display_links = ('address',)
+#     search_fields = ('address',)
+#     list_filter = ('address',)
+#     empty_value_display = '-пусто-'
 
 
 @admin.register(Service)
 class ServiceAdmin(admin.ModelAdmin):
     list_display = ('id',
                     'name',
-                    'master',
+                    'category',
                     'created',
                     'additions_in_favorite_count')
-    list_display_links = ('name',)
-    search_fields = ('name', 'master')
-    list_filter = ('name', 'master')
+    list_display_links = ('name', 'category',)
+    search_fields = ('name', 'category', 'master')
+    list_filter = ('category', 'master')
     empty_value_display = '-пусто-'
 
-    inlines = [LocationInService,]
+    # inlines = [LocationInService,]
 
     @admin.display(description='Количество добавлений в избранное')
     def additions_in_favorite_count(self, service):
@@ -73,12 +73,12 @@ class CommentAdmin(admin.ModelAdmin):
     empty_value_display = '-пусто-'
 
 
-@admin.register(LocationService)
-class LocationServiceAdmin(admin.ModelAdmin):
-    list_display = ('id', 'location', 'service')
-    search_fields = ('location', 'service')
-    list_filter = ('location', 'service')
-    empty_value_display = '-пусто-'
+# @admin.register(LocationService)
+# class LocationServiceAdmin(admin.ModelAdmin):
+#     list_display = ('id', 'location', 'service')
+#     search_fields = ('location', 'service')
+#     list_filter = ('location', 'service')
+#     empty_value_display = '-пусто-'
 
 
 @admin.register(Schedule)

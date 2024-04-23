@@ -17,7 +17,7 @@ from .filters import CategoryFilterSet, ServiceFilterSet
 
 from services.models import (Category,
                              Favorite,
-                             Location,
+                             # Location,
                              Service,
                              Review)
 
@@ -25,7 +25,7 @@ from .permissions import IsAdminOrMasterOrReadOnly, IsAdminOrAuthorOrReadOnly
 
 from .serializers import (CategorySerializer,
                           CommentSerializer,
-                          LocationSerializer,
+                        #   LocationSerializer,
                           MasterContextSerializer,
                           ReviewSerializer,
                           ServiceSerializer,
@@ -124,9 +124,7 @@ class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
 class ServiceViewSet(viewsets.ModelViewSet):
     """Вьюсет Сервисов."""
     queryset = Service.objects.select_related(
-        'master'
-    ).prefetch_related(
-        'tags', 'activities', 'locations'
+        'master', 'category'
     ).annotate(
         rating=Avg('reviews__score')
     ).all()
@@ -134,6 +132,9 @@ class ServiceViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAdminOrMasterOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
     filterset_class = ServiceFilterSet
+
+    def perform_create(self, serializer):
+        return super().perform_create(serializer, master=self.request.user)
 
     @extend_schema(summary='Избранное')
     @action(methods=['post', 'delete'],

@@ -18,8 +18,8 @@ from djoser.serializers import (UserSerializer,
 
 from services.models import (Category,
                              Comment,
-                             Location,
-                             LocationService,
+                            #  Location,
+                            #  LocationService,
                              Review,
                              Service)
 
@@ -173,19 +173,21 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = ('id',
                   'name',
                   'description',
-                  'slug')
+                  'slug',
+                  'parent',
+                  'categories')
 
 
-class LocationSerializer(serializers.ModelSerializer):
-    """Сериализатор Локации."""
-    address = serializers.CharField(required=False)
-    point = serializers.CharField(required=False)
+# class LocationSerializer(serializers.ModelSerializer):
+#     """Сериализатор Локации."""
+#     address = serializers.CharField(required=False)
+#     point = serializers.CharField(required=False)
 
-    class Meta:
-        model = Location
-        fields = ('id',
-                  'address',
-                  'point')
+#     class Meta:
+#         model = Location
+#         fields = ('id',
+#                   'address',
+#                   'point')
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -259,13 +261,9 @@ class ReviewContextSerializer(serializers.ModelSerializer):
 
 class ServiceSerializer(serializers.ModelSerializer):
     """Сериализатор Сервиса."""
-    master = MasterContextSerializer(
-        default=serializers.CurrentUserDefault()
-    )
-    category = serializers.PrimaryKeyRelatedField(
-        queryset=Category.objects.all()
-    )
-    locations = LocationSerializer(many=True)
+    master = MasterContextSerializer(read_only=True)
+    category = CategorySerializer()
+    # locations = LocationSerializer(many=True)
     image = Base64ImageField()
     created = serializers.DateTimeField(read_only=True, format='%d.%m.%Y')
     reviews = ReviewContextSerializer(read_only=True, many=True)
@@ -275,11 +273,10 @@ class ServiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Service
         fields = ('id',
-                  'name',
                   'description',
                   'category',
                   'master',
-                  'locations',
+                #   'locations',
                   'site_address',
                   'phone_number',
                   'social_network_contacts',
@@ -294,22 +291,22 @@ class ServiceSerializer(serializers.ModelSerializer):
                                     fields=['master', 'name'])
         ]
 
-    def get_location(self, location):
-        if location.get('address'):
-            location_data = Yandex(
-                api_key=settings.API_KEY
-            ).geocode(location['address'])
-            location['address'] = location_data.address
-            location['point'] = f'POINT({location_data.longitude} {location_data.latitude})'
+    # def get_location(self, location):
+    #     if location.get('address'):
+    #         location_data = Yandex(
+    #             api_key=settings.API_KEY
+    #         ).geocode(location['address'])
+    #         location['address'] = location_data.address
+    #         location['point'] = f'POINT({location_data.longitude} {location_data.latitude})'
 
-        elif location.get('point'):
-            point = location.get('point')
-            location_data = Yandex(api_key=settings.API_KEY).reverse(point)
+    #     elif location.get('point'):
+    #         point = location.get('point')
+    #         location_data = Yandex(api_key=settings.API_KEY).reverse(point)
 
-            location['address'] = location_data.address
-            location['point'] = f'POINT({point})'
+    #         location['address'] = location_data.address
+    #         location['point'] = f'POINT({point})'
 
-        return location
+    #     return location
 
     # def validate(self, data):
     #     activities_list = self.initial_data('activities')
@@ -324,18 +321,18 @@ class ServiceSerializer(serializers.ModelSerializer):
 
     @transaction.atomic
     def create(self, validated_data):
-        locations_list = validated_data.pop('locations')
-        # activities_list = validated_data.pop('activities')
+        # locations_list = validated_data.pop('locations')
+        category = validated_data.pop('category')
 
-        service = Service.objects.create(**validated_data)
+        service = Service.objects.create(**validated_data, category=category)
         # service.activities.set(activities_list)
 
-        for location in locations_list:
-            location = self.get_location(location)
-            current_location, _ = Location.objects.get_or_create(**location)
-            LocationService.objects.create(
-                location=current_location, service=service
-            )
+        # for location in locations_list:
+        #     location = self.get_location(location)
+        #     current_location, _ = Location.objects.get_or_create(**location)
+        #     LocationService.objects.create(
+        #         location=current_location, service=service
+        #     )
 
         return service
 
@@ -345,7 +342,7 @@ class ServiceSerializer(serializers.ModelSerializer):
             return False
         return user.favorite_services.filter(service=service).exists()
 
-    def to_representation(self, instance):
-        data = super().to_representation(instance)
-        data['category'] = instance.category.values()
-        return data
+    # def to_representation(self, instance):
+    #     data = super().to_representation(instance)
+    #     data['category'] = instance.category
+    #     return data

@@ -34,26 +34,26 @@ class Category(models.Model):
         return self.name
 
 
-class Location(gismodels.Model):
-    """Модель Локации."""
-    address = models.CharField(
-        verbose_name='Адрес',
-        max_length=256
-    )
-    point = gismodels.PointField(spatial_index=True)
+# class Location(gismodels.Model):
+#     """Модель Локации."""
+#     address = models.CharField(
+#         verbose_name='Адрес',
+#         max_length=256
+#     )
+#     point = gismodels.PointField(spatial_index=True)
 
-    class Meta:
-        ordering = ['address']
-        verbose_name = 'Location'
-        verbose_name_plural = 'Locations'
+#     class Meta:
+#         ordering = ['address']
+#         verbose_name = 'Location'
+#         verbose_name_plural = 'Locations'
 
-    def __str__(self):
-        return self.address
+#     def __str__(self):
+#         return self.address
 
 
 class Service(models.Model):
     """Модель Сервиса."""
-    name = models.CharField('Наименование услуги', max_length=256)
+    name = models.CharField('Наименование', max_length=256)
     description = models.TextField('Описание', null=False, blank=False)
     master = models.ForeignKey(
         User,
@@ -64,15 +64,20 @@ class Service(models.Model):
     category = models.ForeignKey(
         Category,
         on_delete=models.CASCADE,
-        verbose_name='Вид деятельности',
+        verbose_name='Категория',
         related_name='services'
     )
-    locations = models.ManyToManyField(
-        Location,
-        through='LocationService',
-        verbose_name='Локации'
+    # locations = models.ManyToManyField(
+    #     Location,
+    #     through='LocationService',
+    #     verbose_name='Локации'
+    # )
+    image = models.ImageField(
+        'Фото',
+        upload_to='services/image/',
+        null=True,
+        blank=True
     )
-    image = models.ImageField('Фото', upload_to='services/image/')
     about_master = models.TextField('О себе', null=True, blank=True)
     site_address = models.URLField(
         'Адрес сайта',
@@ -159,29 +164,29 @@ class Comment(models.Model):
         verbose_name_plural = 'Comments'
 
 
-class LocationService(models.Model):
-    """Модель отношений Локация-Сервис."""
-    location = models.ForeignKey(
-        Location,
-        on_delete=models.CASCADE,
-        related_name='in_services'
-    )
-    service = models.ForeignKey(
-        Service,
-        on_delete=models.CASCADE,
-        related_name='in_locations'
-    )
+# class LocationService(models.Model):
+#     """Модель отношений Локация-Сервис."""
+#     location = models.ForeignKey(
+#         Location,
+#         on_delete=models.CASCADE,
+#         related_name='in_services'
+#     )
+#     service = models.ForeignKey(
+#         Service,
+#         on_delete=models.CASCADE,
+#         related_name='in_locations'
+#     )
 
-    class Meta:
-        ordering = ['location']
-        verbose_name_plural = 'Locations Services'
-        constraints = [
-            models.UniqueConstraint(fields=['location', 'service'],
-                                    name='unique_location_service')
-        ]
+#     class Meta:
+#         ordering = ['location']
+#         verbose_name_plural = 'Locations Services'
+#         constraints = [
+#             models.UniqueConstraint(fields=['location', 'service'],
+#                                     name='unique_location_service')
+#         ]
 
-    def __str__(self):
-        return f'{self.location} {self.service}'
+#     def __str__(self):
+#         return f'{self.location} {self.service}'
 
 
 class Favorite(models.Model):
