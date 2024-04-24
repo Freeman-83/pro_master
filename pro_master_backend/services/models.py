@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.gis.db import models as gismodels
 from django.db import models
@@ -6,9 +7,6 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 # from colorfield.fields import ColorField
 
 from phonenumber_field.modelfields import PhoneNumberField
-
-
-User = get_user_model()
 
 
 class Category(models.Model):
@@ -53,10 +51,10 @@ class Category(models.Model):
 
 class Service(models.Model):
     """Модель Сервиса."""
-    name = models.CharField('Наименование', max_length=256)
+    name = models.CharField('Наименование услуги', max_length=256)
     description = models.TextField('Описание', null=False, blank=False)
     master = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         verbose_name='Мастер',
         related_name='services'
@@ -64,7 +62,7 @@ class Service(models.Model):
     category = models.ForeignKey(
         Category,
         on_delete=models.CASCADE,
-        verbose_name='Категория',
+        verbose_name='Вид деятельности',
         related_name='services'
     )
     # locations = models.ManyToManyField(
@@ -76,8 +74,7 @@ class Service(models.Model):
         'Фото',
         upload_to='services/image/',
         null=True,
-        blank=True
-    )
+        blank=True)
     about_master = models.TextField('О себе', null=True, blank=True)
     site_address = models.URLField(
         'Адрес сайта',
@@ -118,7 +115,7 @@ class Review(models.Model):
         'Оценка', validators=[MinValueValidator(1), MaxValueValidator(10)]
     )
     author = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         verbose_name='Автор',
         on_delete=models.CASCADE,
         related_name='reviews'
@@ -149,7 +146,7 @@ class Comment(models.Model):
     )
     text = models.TextField('Текст')
     author = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         verbose_name='Автор',
         on_delete=models.CASCADE,
         related_name='comments'
@@ -192,7 +189,7 @@ class Comment(models.Model):
 class Favorite(models.Model):
     """Модель избранных Сервисов."""
     client = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='favorite_services'
     )
@@ -253,7 +250,7 @@ class Appointment(models.Model):
         related_name='appointments'
     )
     client = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         verbose_name='Клиент',
         related_name='appointments'

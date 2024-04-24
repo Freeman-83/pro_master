@@ -8,7 +8,7 @@ from djoser.views import UserViewSet
 
 from drf_spectacular.utils import extend_schema, extend_schema_view
 
-from rest_framework import permissions, viewsets
+from rest_framework import mixins, permissions, viewsets
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -21,12 +21,18 @@ from services.models import (Category,
                              Service,
                              Review)
 
-from .permissions import IsAdminOrMasterOrReadOnly, IsAdminOrAuthorOrReadOnly
+from users.models import ClientProfile, MasterProfile
+
+from .permissions import (IsAdminOrMasterOrReadOnly,
+                          IsAdminOrAuthorOrReadOnly,
+                          IsAdminOrClientOrReadOnly)
 
 from .serializers import (CategorySerializer,
+                          ClientProfileSerializer,
                           CommentSerializer,
                         #   LocationSerializer,
                           MasterContextSerializer,
+                          MasterProfileSerializer,
                           ReviewSerializer,
                           ServiceSerializer,
                           ServiceContextSerializer)
@@ -45,57 +51,62 @@ class CustomUserViewSet(UserViewSet):
             self.permission_classes = [permissions.IsAuthenticated, ]
         return super().get_permissions()
 
-
-@extend_schema(tags=['Мастера'])
-@extend_schema_view(
-    list=extend_schema(summary='Получение списка мастеров'),
-    create=extend_schema(summary='Создание нового мастера'),
-    retrieve=extend_schema(summary='Профиль мастера'),
-    update=extend_schema(summary='Изменение профиля мастера'),
-    partial_update=extend_schema(summary='Частичное изменение профиля мастера'),
-    destroy=extend_schema(summary='Удаление профиля мастера'),
-)
-class MasterViewSet(CustomUserViewSet):
-    """Кастомный вьюсет Мастера."""
-
-    def get_permissions(self):
-        if self.action == 'retrieve':
-            self.permission_classes = settings.PERMISSIONS.master
-        return super().get_permissions()
-
     def get_queryset(self):
-        return User.objects.filter(is_master=True)
+        if self.action == 'list' and not self.request.user.is_staff:
+            return User.objects.filter(pk=self.request.user.id)
+        return super().get_queryset()
 
     def get_serializer_class(self):
         if self.action == "create":
             if settings.USER_CREATE_PASSWORD_RETYPE:
                 return settings.SERIALIZERS.user_create_password_retype
-            return settings.SERIALIZERS.master_create
+            return settings.SERIALIZERS.user_create
         if self.action in ['list', 'retrieve']:
-            return settings.SERIALIZERS.master
+            return settings.SERIALIZERS.user
         return super().get_serializer_class()
 
-    def perform_create(self, serializer, *args, **kwargs):
-        return super().perform_create(serializer, is_master=True)
-        
 
-
-@extend_schema(tags=['Клиенты'])
+@extend_schema(tags=['Профили Клиентов'])
 @extend_schema_view(
     list=extend_schema(summary='Получение списка клиентов'),
-    create=extend_schema(summary='Создание нового клиента'),
+    create=extend_schema(summary='Создание профиля клиента'),
     retrieve=extend_schema(summary='Профиль клиента'),
     update=extend_schema(summary='Изменение профиля клиента'),
     partial_update=extend_schema(summary='Частичное изменение профиля клиента'),
     destroy=extend_schema(summary='Удаление профиля клиента'),
 )
-class ClientViewSet(CustomUserViewSet):
+class ClientProfileViewSet(viewsets.ModelViewSet):
     """Кастомный вьюсет Клиента."""
+    queryset = ClientProfile.objects.all()
+    serializer_class = ClientProfileSerializer
+    permission_classes = (IsAdminOrClientOrReadOnly,)
 
     def get_queryset(self):
         if self.action == 'list' and not self.request.user.is_staff:
-            return User.objects.filter(is_master=True)
-        return User.objects.filter(is_master=False)
+            return ClientProfile.objects.filter(pk=self.request.user.id)
+        return super().get_queryset()
+
+    def perform_create(self, serializer):
+        return serializer.save(client=self.request.user)
+
+
+@extend_schema(tags=['Профили Мастеров'])
+@extend_schema_view(
+    list=extend_schema(summary='Получение списка мастеров'),
+    create=extend_schema(summary='Создание профиля мастера'),
+    retrieve=extend_schema(summary='Профиль мастера'),
+    update=extend_schema(summary='Изменение профиля мастера'),
+    partial_update=extend_schema(summary='Частичное изменение профиля мастера'),
+    destroy=extend_schema(summary='Удаление профиля мастера'),
+)
+class MasterProfileViewSet(viewsets.ModelViewSet):
+    """Кастомный вьюсет Мастера."""
+    queryset = MasterProfile.objects.all()
+    serializer_class = MasterProfileSerializer
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+
+    def perform_create(self, serializer):
+        return serializer.save(master=self.request.user)
 
 
 @extend_schema(tags=['Сферы деятельности'])

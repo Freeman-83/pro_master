@@ -3,7 +3,7 @@ import re
 from geopy import Yandex
 
 from django.conf import settings
-from django.contrib.auth import authenticate
+from django.contrib.auth import authenticate, get_user_model
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 
@@ -23,7 +23,11 @@ from services.models import (Category,
                              Review,
                              Service)
 
-from users.models import CustomUser
+from users.models import ClientProfile, MasterProfile
+
+
+User = get_user_model()
+
 
 class ServiceContextSerializer(serializers.ModelSerializer):
     """Сериализатор отображения профиля рецепта в других контекстах."""
@@ -40,38 +44,12 @@ class RegisterUserSerializer(UserCreateSerializer):
     """Кастомный базовый сериализатор регистрации пользователя."""
 
     class Meta:
-        model = CustomUser
+        model = User
         fields = ('id',
-                  'username',
                   'email',
-                  'first_name',
-                  'last_name',
                   'phone_number',
                   'password',
-                  'photo',)
-
-    def validate_username(self, data):
-        username = data
-        error_symbols_list = []
-
-        for symbol in username:
-            if not re.search(r'^[\w.@+-]+\Z', symbol):
-                error_symbols_list.append(symbol)
-        if error_symbols_list:
-            raise serializers.ValidationError(
-                f'Символы {"".join(error_symbols_list)} недопустимы'
-            )
-        return data
-
-
-class RegisterMasterSerializer(RegisterUserSerializer):
-    """Кастомный сериализатор регистрации Мастера."""
-    pass
-
-
-class RegisterClientSerializer(RegisterUserSerializer):
-    """Кастомный сериализатор регистрации Клиента."""
-    pass
+                  'is_master')
 
 
 class CustomTokenCreateSerializer(TokenCreateSerializer):
@@ -80,8 +58,8 @@ class CustomTokenCreateSerializer(TokenCreateSerializer):
     password = serializers.CharField(
         required=False, style={'input_type': 'password'}
     )
-    field = CustomUser.USERNAME_FIELD
-    alt_field = CustomUser.ALT_USERNAME_FIELD
+    field = User.USERNAME_FIELD
+    alt_field = User.ALT_USERNAME_FIELD
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -105,7 +83,7 @@ class CustomTokenCreateSerializer(TokenCreateSerializer):
         )
 
         if not self.user:
-            self.user = CustomUser.objects.filter(**params).first()
+            self.user = User.objects.filter(**params).first()
             if self.user and not self.user.check_password(password):
                 raise serializers.ValidationError(
                     'Некорректный пароль пользователя!'
@@ -119,50 +97,84 @@ class CustomTokenCreateSerializer(TokenCreateSerializer):
 
 class CustomUserSerializer(UserSerializer):
     """Кастомный базовый сериализатор всех пользователей."""
-    pass
-
-
-class MasterSerializer(CustomUserSerializer):
-    """Кастомный сериализатор Мастера."""
-    services = ServiceContextSerializer(many=True, read_only=True)
 
     class Meta:
-        model = CustomUser
+        model = User
         fields = ('id',
-                  'username',
                   'email',
+                  'phone_number',
+                  'is_master')
+
+
+class ClientProfileSerializer(serializers.ModelSerializer):
+    """Кастомный сериализатор Клиента."""
+    client = CustomUserSerializer(read_only=True)
+    # favorites_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ClientProfile
+        fields = ('id',
+                  'client',
+                  'username',
                   'first_name',
                   'last_name',
-                  'services')
+                #   'favorites_count'
+                  )
+        
+    def validate_username(self, data):
+        username = data
+        error_symbols_list = []
+
+        for symbol in username:
+            if not re.search(r'^[\w.@+-]+\Z', symbol):
+                error_symbols_list.append(symbol)
+        if error_symbols_list:
+            raise serializers.ValidationError(
+                f'Символы {"".join(error_symbols_list)} недопустимы'
+            )
+        return data
+
+    # def get_favorites_count(self, client):
+    #     return client.favorite_services.all().count()
+
+
+class MasterProfileSerializer(serializers.ModelSerializer):
+    """Кастомный сериализатор Мастера."""
+    master = CustomUserSerializer(read_only=True)
+    # services = ServiceContextSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = MasterProfile
+        fields = ('id',
+                  'master',
+                  'category',
+                  'username',
+                  'first_name',
+                  'last_name')
+        
+    def validate_username(self, data):
+        username = data
+        error_symbols_list = []
+
+        for symbol in username:
+            if not re.search(r'^[\w.@+-]+\Z', symbol):
+                error_symbols_list.append(symbol)
+        if error_symbols_list:
+            raise serializers.ValidationError(
+                f'Символы {"".join(error_symbols_list)} недопустимы'
+            )
+        return data
         
 
-class MasterContextSerializer(CustomUserSerializer):
+class MasterContextSerializer(serializers.ModelSerializer):
     """Кастомный сериализатор профиля Мастера в других контекстах."""
 
     class Meta:
-        model = CustomUser
+        model = MasterProfile
         fields = ('id',
                   'username',
-                  'email',
                   'first_name',
                   'last_name')
-
-
-class ClientSerializer(CustomUserSerializer):
-    """Кастомный сериализатор Клиента."""
-    favorites_count = serializers.SerializerMethodField()
-
-    class Meta:
-        model = CustomUser
-        fields = ('id',
-                  'username',
-                  'email',
-                  'first_name',
-                  'last_name',
-                  'favorites_count')
-
-    def get_favorites_count(self, client):
-        return client.favorite_services.all().count()
 
 
 class CategorySerializer(serializers.ModelSerializer):

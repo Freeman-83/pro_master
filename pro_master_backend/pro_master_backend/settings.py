@@ -145,18 +145,13 @@ DJOSER = {
     'ACTIVATION_URL': '#/activation/{uid}/{token}',
     'SEND_ACTIVATION_EMAIL': True,
     'SERIALIZERS': {
-        'user_create': 'api.serializers.RegisterClientSerializer',
-        'master_create': 'api.serializers.RegisterMasterSerializer',
-        'current_user': 'api.serializers.ClientSerializer',
-        'current_master': 'api.serializers.MasterSerializer',
-        'user': 'api.serializers.ClientSerializer',
-        'master': 'api.serializers.MasterSerializer',
+        'user_create': 'api.serializers.RegisterUserSerializer',
+        'current_user': 'api.serializers.CustomUserSerializer',
+        'user': 'api.serializers.CustomUserSerializer',
         'token_create': 'api.serializers.CustomTokenCreateSerializer',
     },
     'PERMISSIONS': {
-        'user_list': ['rest_framework.permissions.IsAuthenticatedOrReadOnly'],
-        # 'master_list': ['rest_framework.permissions.AllowAny'],
-        'master': ['rest_framework.permissions.IsAuthenticatedOrReadOnly'],
+        'user_list': ['rest_framework.permissions.IsAdminUser'],
     }
 }
 

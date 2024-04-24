@@ -4,8 +4,9 @@ from rest_framework import routers
 
 from .views import (CategoryViewSet,
                     CommentViewSet,
-                    ClientViewSet,
-                    MasterViewSet,
+                    ClientProfileViewSet,
+                    CustomUserViewSet,
+                    MasterProfileViewSet,
                     ReviewViewSet,
                     ServiceViewSet)
 
@@ -15,8 +16,9 @@ router = routers.DefaultRouter()
 
 router.register('services', ServiceViewSet)
 router.register('category', CategoryViewSet)
-router.register('users', ClientViewSet, basename='users')
-router.register('masters', MasterViewSet, basename='masters')
+router.register('users', CustomUserViewSet, basename='users')
+router.register('clients', ClientProfileViewSet, basename='clients')
+router.register('masters', MasterProfileViewSet, basename='masters')
 router.register(
     r'services/(?P<service_id>\d+)/reviews',
     ReviewViewSet,

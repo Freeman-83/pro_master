@@ -24,3 +24,15 @@ class IsAdminOrAuthorOrReadOnly(permissions.BasePermission):
         return (request.method in permissions.SAFE_METHODS
                 or request.user.is_staff
                 or obj.author == request.user)
+    
+
+class IsAdminOrClientOrReadOnly(permissions.BasePermission):
+
+    def has_permission(self, request, view):
+        return (request.method not in ['get']
+                or request.user.is_staff)
+
+    def has_object_permission(self, request, view, obj):
+        return (request.method in permissions.SAFE_METHODS
+                or request.user.is_staff
+                or obj.client == request.user)
