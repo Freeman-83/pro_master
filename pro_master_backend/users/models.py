@@ -135,7 +135,7 @@ class MasterProfile(models.Model):
         null=True,
         blank=True
     )
-    photo = models.ImageField(
+    profile_photo = models.ImageField(
         'Фото профиля',
         upload_to='users/image/',
         null=True,

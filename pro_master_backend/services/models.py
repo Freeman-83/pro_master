@@ -11,16 +11,19 @@ from phonenumber_field.modelfields import PhoneNumberField
 
 class Category(models.Model):
     """Модель Категории."""
-    name = models.CharField('Вид деятельности', unique=True, max_length=256)
-    description = models.TextField('Описание', null=False, blank=False)
+    name = models.CharField(
+        'Наименование категории',
+        max_length=256,
+        unique=True
+    )
     slug = models.SlugField('Slug', unique=True, max_length=200)
-    parent = models.ForeignKey(
+    parent_category = models.ForeignKey(
         'self',
         on_delete=models.PROTECT,
+        verbose_name='Родительская категория',
+        related_name='categories',
         blank=True,
         null=True,
-        verbose_name='Родительская категория',
-        related_name='categories'
     )
 
     class Meta:
@@ -62,7 +65,7 @@ class Service(models.Model):
     category = models.ForeignKey(
         Category,
         on_delete=models.CASCADE,
-        verbose_name='Вид деятельности',
+        verbose_name='Категория',
         related_name='services'
     )
     # locations = models.ManyToManyField(
@@ -75,7 +78,11 @@ class Service(models.Model):
         upload_to='services/image/',
         null=True,
         blank=True)
-    about_master = models.TextField('О себе', null=True, blank=True)
+    about_master = models.TextField(
+        'О себе',
+        null=True,
+        blank=True
+    )
     site_address = models.URLField(
         'Адрес сайта',
         null=True,
