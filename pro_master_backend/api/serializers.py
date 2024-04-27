@@ -99,34 +99,26 @@ class CustomUserSerializer(UserSerializer):
 
 class ClientProfileSerializer(serializers.ModelSerializer):
     """Кастомный сериализатор Клиента."""
-    client = CustomUserSerializer(read_only=True)
-    # favorites_count = serializers.SerializerMethodField()
+    client = CustomUserSerializer(
+        default=serializers.CurrentUserDefault()
+    )
+    favorites_count = serializers.SerializerMethodField()
 
     class Meta:
         model = ClientProfile
         fields = ('id',
                   'client',
-                  'username',
+                  'profile_name',
                   'first_name',
                   'last_name',
-                #   'favorites_count'
-                  )
-        
-    def validate_username(self, data):
-        username = data
-        error_symbols_list = []
+                  'favorites_count')
+    
+    @transaction.atomic
+    def create(self, validated_data):
+        return super().create(validated_data)
 
-        for symbol in username:
-            if not re.search(r'^[\w.@+-]+\Z', symbol):
-                error_symbols_list.append(symbol)
-        if error_symbols_list:
-            raise serializers.ValidationError(
-                f'Символы {"".join(error_symbols_list)} недопустимы'
-            )
-        return data
-
-    # def get_favorites_count(self, client):
-    #     return client.favorite_services.all().count()
+    def get_favorites_count(self, profile):
+        return profile.client.favorite_services.all().count()
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -256,8 +248,8 @@ class ServiceProfileSerializer(serializers.ModelSerializer):
         fields = ('id',
                   'name',
                   'categories',
-                  'description',
                   'owner',
+                  'description',
                   # 'locations',
                   'profile_foto',
                   # 'profile_images',
@@ -309,7 +301,6 @@ class ServiceProfileSerializer(serializers.ModelSerializer):
         categories_list = validated_data.pop('categories')
         # locations_list = validated_data.pop('locations')
         service_profile = ServiceProfile.objects.create(**validated_data)
-        # service.activities.set(activities_list)
 
         for category in categories_list:
             ServiceProfileCategory.objects.create(

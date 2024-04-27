@@ -158,6 +158,31 @@ class ServiceProfileCategory(models.Model):
         ]
 
 
+# class LocationService(models.Model):
+#     """Модель отношений Локация-Сервис."""
+#     location = models.ForeignKey(
+#         Location,
+#         on_delete=models.CASCADE,
+#         related_name='in_services'
+#     )
+#     service = models.ForeignKey(
+#         Service,
+#         on_delete=models.CASCADE,
+#         related_name='in_locations'
+#     )
+
+#     class Meta:
+#         ordering = ['location']
+#         verbose_name_plural = 'Locations Services'
+#         constraints = [
+#             models.UniqueConstraint(fields=['location', 'service'],
+#                                     name='unique_location_service')
+#         ]
+
+#     def __str__(self):
+#         return f'{self.location} {self.service}'
+
+
 class Employee(models.Model):
     """Модель Сотрудника организации."""
     first_name = models.CharField(
@@ -198,7 +223,7 @@ class Review(models.Model):
     )
     text = models.TextField('Текст')
     score = models.PositiveSmallIntegerField(
-        'Оценка', validators=[MinValueValidator(1), MaxValueValidator(10)]
+        'Оценка', validators=[MinValueValidator(1), MaxValueValidator(5)]
     )
     author = models.ForeignKey(
         User,
@@ -245,31 +270,6 @@ class Comment(models.Model):
         ordering = ['-pub_date']
         verbose_name = 'Comment'
         verbose_name_plural = 'Comments'
-
-
-# class LocationService(models.Model):
-#     """Модель отношений Локация-Сервис."""
-#     location = models.ForeignKey(
-#         Location,
-#         on_delete=models.CASCADE,
-#         related_name='in_services'
-#     )
-#     service = models.ForeignKey(
-#         Service,
-#         on_delete=models.CASCADE,
-#         related_name='in_locations'
-#     )
-
-#     class Meta:
-#         ordering = ['location']
-#         verbose_name_plural = 'Locations Services'
-#         constraints = [
-#             models.UniqueConstraint(fields=['location', 'service'],
-#                                     name='unique_location_service')
-#         ]
-
-#     def __str__(self):
-#         return f'{self.location} {self.service}'
 
 
 class Favorite(models.Model):
