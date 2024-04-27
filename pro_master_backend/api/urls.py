@@ -6,26 +6,26 @@ from .views import (CategoryViewSet,
                     CommentViewSet,
                     ClientProfileViewSet,
                     CustomUserViewSet,
-                    MasterProfileViewSet,
-                    ReviewViewSet,
-                    ServiceViewSet)
+                    ServiceProfileViewSet,
+                    ReviewViewSet,)
 
 app_name = 'api'
 
 router = routers.DefaultRouter()
 
-router.register('services', ServiceViewSet)
-router.register('category', CategoryViewSet)
+
 router.register('users', CustomUserViewSet, basename='users')
+
+router.register('category', CategoryViewSet)
+router.register('services', ServiceProfileViewSet)
 router.register('clients', ClientProfileViewSet, basename='clients')
-router.register('masters', MasterProfileViewSet, basename='masters')
 router.register(
-    r'services/(?P<service_id>\d+)/reviews',
+    r'services/(?P<profile_id>\d+)/reviews',
     ReviewViewSet,
     basename='reviews'
 )
 router.register(
-    r'services/(?P<service_id>\d+)/reviews/(?P<review_id>\d+)/comments',
+    r'services/(?P<profile_id>\d+)/reviews/(?P<review_id>\d+)/comments',
     CommentViewSet,
     basename='comments'
 )

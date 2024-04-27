@@ -18,26 +18,17 @@ from djoser.serializers import (UserSerializer,
 
 from services.models import (Category,
                              Comment,
-                            #  Location,
-                            #  LocationService,
-                             Review,
-                             Service)
+                             Favorite,
+                             # Location,
+                             # LocationService,
+                             ServiceProfile,
+                             ServiceProfileCategory,
+                             Review)
 
-from users.models import ClientProfile, MasterProfile
+from users.models import ClientProfile
 
 
 User = get_user_model()
-
-
-class ServiceContextSerializer(serializers.ModelSerializer):
-    """Сериализатор отображения профиля рецепта в других контекстах."""
-    activities = serializers.StringRelatedField(many=True)
-
-    class Meta:
-        model = Service
-        fields = ('id',
-                  'name',
-                  'activities')
 
 
 class RegisterUserSerializer(UserCreateSerializer):
@@ -138,45 +129,6 @@ class ClientProfileSerializer(serializers.ModelSerializer):
     #     return client.favorite_services.all().count()
 
 
-class MasterProfileSerializer(serializers.ModelSerializer):
-    """Кастомный сериализатор Мастера."""
-    master = CustomUserSerializer(read_only=True)
-    # services = ServiceContextSerializer(many=True, read_only=True)
-
-    class Meta:
-        model = MasterProfile
-        fields = ('id',
-                  'master',
-                  'category',
-                  'username',
-                  'first_name',
-                  'last_name')
-        
-    def validate_username(self, data):
-        username = data
-        error_symbols_list = []
-
-        for symbol in username:
-            if not re.search(r'^[\w.@+-]+\Z', symbol):
-                error_symbols_list.append(symbol)
-        if error_symbols_list:
-            raise serializers.ValidationError(
-                f'Символы {"".join(error_symbols_list)} недопустимы'
-            )
-        return data
-        
-
-class MasterContextSerializer(serializers.ModelSerializer):
-    """Кастомный сериализатор профиля Мастера в других контекстах."""
-
-    class Meta:
-        model = MasterProfile
-        fields = ('id',
-                  'username',
-                  'first_name',
-                  'last_name')
-
-
 class CategorySerializer(serializers.ModelSerializer):
     """Сериализатор Активностей."""
 
@@ -248,7 +200,8 @@ class ReviewSerializer(serializers.ModelSerializer):
         request = self.context['request']
         author = request.user
         service = get_object_or_404(
-            Service, pk=self.context['view'].kwargs.get('service_id')
+            ServiceProfile,
+            pk=self.context['view'].kwargs.get('service_id')
         )
         if author == service.master:
             raise serializers.ValidationError(
@@ -271,36 +224,56 @@ class ReviewContextSerializer(serializers.ModelSerializer):
         fields = ('id', 'text', 'score', 'author', 'pub_date')
 
 
-class ServiceSerializer(serializers.ModelSerializer):
-    """Сериализатор Сервиса."""
-    master = MasterContextSerializer(read_only=True)
-    category = CategorySerializer()
+class ServiceProfileContextSerializer(serializers.ModelSerializer):
+    """Сериализатор отображения профиля рецепта в других контекстах."""
+    category = serializers.StringRelatedField(many=True)
+
+    class Meta:
+        model = ServiceProfile
+        fields = ('id',
+                  'name',
+                  'category')
+
+
+class ServiceProfileSerializer(serializers.ModelSerializer):
+    """Сериализатор профиля Сервиса."""
+    owner = CustomUserSerializer(
+        default=serializers.CurrentUserDefault()
+    )
+    categories = serializers.PrimaryKeyRelatedField(
+        queryset=Category.objects.all(), many=True
+    )
     # locations = LocationSerializer(many=True)
-    image = Base64ImageField()
+    profile_foto = Base64ImageField()
+    # profile_images = Base64ImageField()
     created = serializers.DateTimeField(read_only=True, format='%d.%m.%Y')
     reviews = ReviewContextSerializer(read_only=True, many=True)
     rating = serializers.IntegerField(read_only=True)
     is_favorited = serializers.SerializerMethodField()
 
     class Meta:
-        model = Service
+        model = ServiceProfile
         fields = ('id',
+                  'name',
+                  'categories',
                   'description',
-                  'category',
-                  'master',
-                #   'locations',
-                  'site_address',
+                  'owner',
+                  # 'locations',
+                  'profile_foto',
+                  # 'profile_images',
                   'phone_number',
+                  'site_address',
                   'social_network_contacts',
-                  'image',
                   'created',
+                  'first_name',
+                  'last_name',
                   'reviews',
                   'rating',
                   'is_favorited')
 
         validators = [
-            UniqueTogetherValidator(queryset=Service.objects.all(),
-                                    fields=['master', 'name'])
+            UniqueTogetherValidator(queryset=ServiceProfile.objects.all(),
+                                    fields=['owner', 'name'])
         ]
 
     # def get_location(self, location):
@@ -333,11 +306,16 @@ class ServiceSerializer(serializers.ModelSerializer):
 
     @transaction.atomic
     def create(self, validated_data):
+        categories_list = validated_data.pop('categories')
         # locations_list = validated_data.pop('locations')
-        category = validated_data.pop('category')
-
-        service = Service.objects.create(**validated_data, category=category)
+        service_profile = ServiceProfile.objects.create(**validated_data)
         # service.activities.set(activities_list)
+
+        for category in categories_list:
+            ServiceProfileCategory.objects.create(
+                service_profile=service_profile,
+                category=category
+            )
 
         # for location in locations_list:
         #     location = self.get_location(location)
@@ -346,7 +324,7 @@ class ServiceSerializer(serializers.ModelSerializer):
         #         location=current_location, service=service
         #     )
 
-        return service
+        return service_profile
 
     def get_is_favorited(self, service):
         user = self.context['request'].user
@@ -354,7 +332,7 @@ class ServiceSerializer(serializers.ModelSerializer):
             return False
         return user.favorite_services.filter(service=service).exists()
 
-    # def to_representation(self, instance):
-    #     data = super().to_representation(instance)
-    #     data['category'] = instance.category
-    #     return data
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data['categories'] = instance.categories.values()
+        return data

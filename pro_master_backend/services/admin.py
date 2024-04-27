@@ -2,22 +2,21 @@ from django.contrib import admin
 from django.contrib.gis.admin import OSMGeoAdmin
 
 from .models import (Category,
-                     Appointment,
                      Comment,
                     #  Location,
                     #  LocationService,
                      Review,
-                     Service,
-                     Schedule)
+                     ServiceProfile,
+                     ServiceProfileCategory)
 
-# class LocationInService(admin.TabularInline):
-#     model = LocationService
-#     min_num = 1
+class ServiceProfileToCategory(admin.TabularInline):
+    model = ServiceProfileCategory
+    min_num = 1
 
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'parent')
+    list_display = ('id', 'name', 'parent_category')
     list_display_links = ('name',)
     search_fields = ('name',)
     list_filter = ('name',)
@@ -36,23 +35,30 @@ class CategoryAdmin(admin.ModelAdmin):
 #     empty_value_display = '-пусто-'
 
 
-@admin.register(Service)
-class ServiceAdmin(admin.ModelAdmin):
+@admin.register(ServiceProfile)
+class ServiceProfileAdmin(admin.ModelAdmin):
     list_display = ('id',
                     'name',
-                    'category',
                     'created',
                     'additions_in_favorite_count')
-    list_display_links = ('name', 'category',)
-    search_fields = ('name', 'category', 'master')
-    list_filter = ('category', 'master')
+    list_display_links = ('name',)
+    search_fields = ('name', 'owner')
+    list_filter = ('owner',)
     empty_value_display = '-пусто-'
 
-    # inlines = [LocationInService,]
+    inlines = [ServiceProfileToCategory,]
 
     @admin.display(description='Количество добавлений в избранное')
     def additions_in_favorite_count(self, service):
         return service.in_favorite_for_clients.all().count()
+
+
+@admin.register(ServiceProfileCategory)
+class ServiceProfileCategoryAdmin(admin.ModelAdmin):
+    list_display = ('id', 'service_profile', 'category')
+    search_fields = ('service_profile', 'category')
+    list_filter = ('service_profile', 'category')
+    empty_value_display = '-пусто-'
 
 
 @admin.register(Review)
@@ -81,27 +87,27 @@ class CommentAdmin(admin.ModelAdmin):
 #     empty_value_display = '-пусто-'
 
 
-@admin.register(Schedule)
-class ScheduleAdmin(admin.ModelAdmin):
-    list_display = ('id',
-                    'service',
-                    'datetime_start',
-                    'datetime_end')
-    list_display_links = ('service',)
-    search_fields = ('service',)
-    list_filter = ('service',)
-    empty_value_display = '-пусто-'
+# @admin.register(Schedule)
+# class ScheduleAdmin(admin.ModelAdmin):
+#     list_display = ('id',
+#                     'service',
+#                     'datetime_start',
+#                     'datetime_end')
+#     list_display_links = ('service',)
+#     search_fields = ('service',)
+#     list_filter = ('service',)
+#     empty_value_display = '-пусто-'
 
 
-@admin.register(Appointment)
-class AppointmentAdmin(admin.ModelAdmin):
-    list_display = ('id',
-                    'service',
-                    'client',
-                    'appointment_datetime_start',
-                    'appointment_datetime_end')
-    list_display_links = ('service', 'client')
-    search_fields = ('service', 'client')
-    list_filter = ('service', 'client')
-    empty_value_display = '-пусто-'
+# @admin.register(Appointment)
+# class AppointmentAdmin(admin.ModelAdmin):
+#     list_display = ('id',
+#                     'service',
+#                     'client',
+#                     'appointment_datetime_start',
+#                     'appointment_datetime_end')
+#     list_display_links = ('service', 'client')
+#     search_fields = ('service', 'client')
+#     list_filter = ('service', 'client')
+#     empty_value_display = '-пусто-'
 

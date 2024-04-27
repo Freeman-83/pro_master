@@ -18,10 +18,11 @@ from .filters import CategoryFilterSet, ServiceFilterSet
 from services.models import (Category,
                              Favorite,
                              # Location,
-                             Service,
+                             ServiceProfile,
                              Review)
 
-from users.models import ClientProfile, MasterProfile
+from users.models import ClientProfile
+
 
 from .permissions import (IsAdminOrMasterOrReadOnly,
                           IsAdminOrAuthorOrReadOnly,
@@ -31,11 +32,9 @@ from .serializers import (CategorySerializer,
                           ClientProfileSerializer,
                           CommentSerializer,
                         #   LocationSerializer,
-                          MasterContextSerializer,
-                          MasterProfileSerializer,
-                          ReviewSerializer,
-                          ServiceSerializer,
-                          ServiceContextSerializer)
+                          ServiceProfileContextSerializer,
+                          ServiceProfileSerializer,
+                          ReviewSerializer)
 
 from .utils import create_relation, delete_relation
 
@@ -90,25 +89,6 @@ class ClientProfileViewSet(viewsets.ModelViewSet):
         return serializer.save(client=self.request.user)
 
 
-@extend_schema(tags=['Профили Мастеров'])
-@extend_schema_view(
-    list=extend_schema(summary='Получение списка мастеров'),
-    create=extend_schema(summary='Создание профиля мастера'),
-    retrieve=extend_schema(summary='Профиль мастера'),
-    update=extend_schema(summary='Изменение профиля мастера'),
-    partial_update=extend_schema(summary='Частичное изменение профиля мастера'),
-    destroy=extend_schema(summary='Удаление профиля мастера'),
-)
-class MasterProfileViewSet(viewsets.ModelViewSet):
-    """Кастомный вьюсет Мастера."""
-    queryset = MasterProfile.objects.all()
-    serializer_class = MasterProfileSerializer
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-
-    def perform_create(self, serializer):
-        return serializer.save(master=self.request.user)
-
-
 @extend_schema(tags=['Сферы деятельности'])
 @extend_schema_view(
     list=extend_schema(summary='Список сфер деятельности'),
@@ -123,29 +103,31 @@ class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
     filterset_class = CategoryFilterSet
 
 
-@extend_schema(tags=['Услуги'])
+@extend_schema(tags=['Профили Сервисов'])
 @extend_schema_view(
-    list=extend_schema(summary='Получение списка услуг'),
-    create=extend_schema(summary='Создание новой услуги'),
-    retrieve=extend_schema(summary='Профиль услуги'),
-    update=extend_schema(summary='Изменение профиля услуги'),
-    partial_update=extend_schema(summary='Частичное изменение профиля услуги'),
-    destroy=extend_schema(summary='Удаление профиля услуги'),
+    list=extend_schema(summary='Получение списка профилей сервисов'),
+    create=extend_schema(summary='Создание новго профиля сервиса'),
+    retrieve=extend_schema(summary='Профиль сервиса'),
+    update=extend_schema(summary='Изменение профиля сервиса'),
+    partial_update=extend_schema(summary='Частичное изменение профиля сервиса'),
+    destroy=extend_schema(summary='Удаление профиля сервиса'),
 )
-class ServiceViewSet(viewsets.ModelViewSet):
-    """Вьюсет Сервисов."""
-    queryset = Service.objects.select_related(
-        'master', 'category'
+class ServiceProfileViewSet(viewsets.ModelViewSet):
+    """Вьюсет Профиля Сервиса."""
+    queryset = ServiceProfile.objects.select_related(
+        'owner', 
+    ).prefetch_related(
+        'categories'
     ).annotate(
         rating=Avg('reviews__score')
     ).all()
-    serializer_class = ServiceSerializer
+    serializer_class = ServiceProfileSerializer
     permission_classes = (IsAdminOrMasterOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
     filterset_class = ServiceFilterSet
 
     def perform_create(self, serializer):
-        return super().perform_create(serializer, master=self.request.user)
+        return serializer.save(owner=self.request.user)
 
     @extend_schema(summary='Избранное')
     @action(methods=['post', 'delete'],
@@ -154,16 +136,16 @@ class ServiceViewSet(viewsets.ModelViewSet):
     def favorite(self, request, pk):
         if request.method == 'POST':
             return create_relation(request,
-                                   Service,
+                                   ServiceProfile,
                                    Favorite,
                                    pk,
-                                   ServiceContextSerializer,
-                                   field='service')
+                                   ServiceProfileContextSerializer,
+                                   field='profile')
         return delete_relation(request,
-                               Service,
+                               ServiceProfile,
                                Favorite,
                                pk,
-                               field='service')
+                               field='profile')
 
 
 @extend_schema(tags=['Отзывы'])
@@ -181,11 +163,17 @@ class ReviewViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAdminOrAuthorOrReadOnly,)
 
     def get_queryset(self):
-        service = get_object_or_404(Service, pk=self.kwargs.get('service_id'))
+        service = get_object_or_404(
+            ServiceProfile,
+            pk=self.kwargs.get('profile_id')
+        )
         return service.reviews.select_related('author').all()
 
     def perform_create(self, serializer):
-        service = get_object_or_404(Service, pk=self.kwargs.get('service_id'))
+        service = get_object_or_404(
+            ServiceProfile,
+            pk=self.kwargs.get('profile_id')
+        )
         serializer.save(author=self.request.user, service=service)
 
 
@@ -204,7 +192,10 @@ class CommentViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAdminOrAuthorOrReadOnly,)
 
     def get_queryset(self):
-        service = get_object_or_404(Service, pk=self.kwargs.get('service_id'))
+        service = get_object_or_404(
+            ServiceProfile,
+            pk=self.kwargs.get('profile_id')
+        )
         review = service.reviews.get(pk=self.kwargs.get('review_id'))
         return review.comments.select_related('author').all()
 

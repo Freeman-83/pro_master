@@ -9,8 +9,11 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from phonenumber_field.modelfields import PhoneNumberField
 
 
+User = get_user_model()
+
+
 class Category(models.Model):
-    """Модель Категории."""
+    """Модель Категории услуги."""
     name = models.CharField(
         'Наименование категории',
         max_length=256,
@@ -52,43 +55,46 @@ class Category(models.Model):
 #         return self.address
 
 
-class Service(models.Model):
-    """Модель Сервиса."""
-    name = models.CharField('Наименование услуги', max_length=256)
-    description = models.TextField('Описание', null=False, blank=False)
-    master = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        verbose_name='Мастер',
-        related_name='services'
+class ServiceProfile(models.Model):
+    """Базовая модель профиля."""
+    name = models.CharField(
+        'Имя профиля',
+        max_length=256
     )
-    category = models.ForeignKey(
+    categories = models.ManyToManyField(
         Category,
-        on_delete=models.CASCADE,
-        verbose_name='Категория',
-        related_name='services'
+        through='ServiceProfileCategory',
+        verbose_name='Категории услуг',
     )
-    # locations = models.ManyToManyField(
-    #     Location,
-    #     through='LocationService',
-    #     verbose_name='Локации'
-    # )
-    image = models.ImageField(
+    description = models.TextField(
+        'Описание сервиса'
+    )
+    owner = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        verbose_name='Собственник',
+        related_name='service_profiles'
+    )
+    profile_foto = models.ImageField(
         'Фото',
-        upload_to='services/image/',
-        null=True,
-        blank=True)
-    about_master = models.TextField(
-        'О себе',
+        upload_to='services/users/image/',
         null=True,
         blank=True
+    )
+    profile_images = models.ImageField(
+        'Фото',
+        upload_to='services/profile/image/',
+        null=True,
+        blank=True
+    )
+    phone_number = PhoneNumberField(
+        'Контактный номер телефона'
     )
     site_address = models.URLField(
         'Адрес сайта',
         null=True,
         blank=True
     )
-    phone_number = PhoneNumberField('Контактный номер телефона')
     social_network_contacts = models.CharField(
         'Ссылка на аккаунт в социальных сетях',
         max_length=100,
@@ -98,21 +104,94 @@ class Service(models.Model):
     created = models.DateTimeField(
         'Дата размещения информации', auto_now_add=True, db_index=True
     )
+    first_name = models.CharField(
+        'Имя',
+        max_length=64,
+        null=True,
+        blank=True
+    )
+    last_name = models.CharField(
+        'Фамилия',
+        max_length=64,
+        null=True,
+        blank=True
+    )
+    is_organization = models.BooleanField(
+        'Статус Организации',
+        default=False
+    )
+    # locations = models.ManyToManyField(
+    #     Location,
+    #     through='LocationService',
+    #     verbose_name='Локации'
+    # )
 
     class Meta:
         ordering = ['-created']
-        verbose_name = 'Service'
-        verbose_name_plural = 'Services'
-        default_related_name = 'services'
+        verbose_name = 'Service Profile'
+        verbose_name_plural = 'Service Profiles'
 
     def __str__(self):
         return self.name
 
 
+class ServiceProfileCategory(models.Model):
+    """Модель отношений Профиль сервиса - Категория."""
+    service_profile = models.ForeignKey(
+        ServiceProfile,
+        on_delete=models.CASCADE,
+        related_name='in_categories'
+    )
+    category = models.ForeignKey(
+        Category,
+        on_delete=models.CASCADE,
+        related_name='in_service_profiles'
+    )
+
+    class Meta:
+        verbose_name_plural = 'Профиль Сервиса - Категория'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['service_profile', 'category'],
+                name='unique_category_for_service'
+            )
+        ]
+
+
+class Employee(models.Model):
+    """Модель Сотрудника организации."""
+    first_name = models.CharField(
+        'Имя',
+        max_length=64,
+         null=True,
+        blank=True
+    )
+    last_name = models.CharField(
+        'Фамилия',
+        max_length=64,
+        null=True,
+        blank=True
+    )
+    photo = models.ImageField(
+        'Фото профиля',
+        upload_to='users/image/',
+        null=True,
+        blank=True
+    )
+    organization = models.ForeignKey(
+        ServiceProfile,
+        on_delete=models.CASCADE,
+        related_name='employees'
+    )
+    phone_number = PhoneNumberField(
+        'Номер телефона'
+    )
+
+
 class Review(models.Model):
     """Модель Отзыва."""
     service = models.ForeignKey(
-        Service,
+        ServiceProfile,
         verbose_name='Сервис',
         on_delete=models.CASCADE,
         related_name='reviews'
@@ -122,7 +201,7 @@ class Review(models.Model):
         'Оценка', validators=[MinValueValidator(1), MaxValueValidator(10)]
     )
     author = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
+        User,
         verbose_name='Автор',
         on_delete=models.CASCADE,
         related_name='reviews'
@@ -153,7 +232,7 @@ class Comment(models.Model):
     )
     text = models.TextField('Текст')
     author = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
+        User,
         verbose_name='Автор',
         on_delete=models.CASCADE,
         related_name='comments'
@@ -196,12 +275,12 @@ class Comment(models.Model):
 class Favorite(models.Model):
     """Модель избранных Сервисов."""
     client = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
+        User,
         on_delete=models.CASCADE,
         related_name='favorite_services'
     )
     service = models.ForeignKey(
-        Service,
+        ServiceProfile,
         on_delete=models.CASCADE,
         related_name='in_favorite_for_clients'
     )
@@ -217,75 +296,75 @@ class Favorite(models.Model):
         return f'{self.client} {self.service}'
 
 
-class Schedule(models.Model):
-    """Модель Расписания услуги."""
-    service = models.ForeignKey(
-        Service,
-        on_delete=models.CASCADE,
-        verbose_name='Услуга',
-        related_name='schedules'
-    )
-    datetime_start = models.DateTimeField(
-        'Начало интервала расписания',
-        unique=True
-    )
-    datetime_end = models.DateTimeField(
-        'Конец интервала расписания',
-        unique=True
-    )
+# class Schedule(models.Model):
+#     """Модель Расписания услуги."""
+#     service = models.ForeignKey(
+#         Profile,
+#         on_delete=models.CASCADE,
+#         verbose_name='Услуга',
+#         related_name='schedules'
+#     )
+#     datetime_start = models.DateTimeField(
+#         'Начало интервала расписания',
+#         unique=True
+#     )
+#     datetime_end = models.DateTimeField(
+#         'Конец интервала расписания',
+#         unique=True
+#     )
 
-    class Meta:
-        ordering = ['datetime_start']
-        verbose_name = 'Schedule'
-        verbose_name_plural = 'Schedules'
-        constraints = [
-            models.UniqueConstraint(
-                fields=['service', 'datetime_start', 'datetime_end'],
-                name='unique_shedule')
-        ]
+#     class Meta:
+#         ordering = ['datetime_start']
+#         verbose_name = 'Schedule'
+#         verbose_name_plural = 'Schedules'
+#         constraints = [
+#             models.UniqueConstraint(
+#                 fields=['service', 'datetime_start', 'datetime_end'],
+#                 name='unique_shedule')
+#         ]
 
-    def __str__(self):
-        return f'{self.datetime_start} {self.datetime_end}'
+#     def __str__(self):
+#         return f'{self.datetime_start} {self.datetime_end}'
 
 
-class Appointment(models.Model):
-    """Модель Записи на услугу."""
-    service = models.ForeignKey(
-        Service,
-        on_delete=models.CASCADE,
-        verbose_name='Услуга',
-        related_name='appointments'
-    )
-    client = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        verbose_name='Клиент',
-        related_name='appointments'
-    )
-    appointment_datetime_start = models.ForeignKey(
-        Schedule,
-        to_field='datetime_start',
-        on_delete=models.CASCADE,
-        verbose_name='Начало интервала записи',
-        related_name='appointments_start'
-    )
-    appointment_datetime_end = models.ForeignKey(
-        Schedule,
-        to_field='datetime_end',
-        on_delete=models.CASCADE,
-        verbose_name='Конец интервала записи',
-        related_name='appointments_end'
-    )
+# class Appointment(models.Model):
+#     """Модель Записи на услугу."""
+#     service = models.ForeignKey(
+#         Profile,
+#         on_delete=models.CASCADE,
+#         verbose_name='Услуга',
+#         related_name='appointments'
+#     )
+#     client = models.ForeignKey(
+#         settings.AUTH_USER_MODEL,
+#         on_delete=models.CASCADE,
+#         verbose_name='Клиент',
+#         related_name='appointments'
+#     )
+#     appointment_datetime_start = models.ForeignKey(
+#         Schedule,
+#         to_field='datetime_start',
+#         on_delete=models.CASCADE,
+#         verbose_name='Начало интервала записи',
+#         related_name='appointments_start'
+#     )
+#     appointment_datetime_end = models.ForeignKey(
+#         Schedule,
+#         to_field='datetime_end',
+#         on_delete=models.CASCADE,
+#         verbose_name='Конец интервала записи',
+#         related_name='appointments_end'
+#     )
 
-    class Meta:
-        ordering = ['appointment_datetime_start']
-        verbose_name = 'Appointment'
-        verbose_name_plural = 'Appointments'
-        constraints = [
-            models.UniqueConstraint(
-                fields=['service', 'client', 'appointment_datetime_start'],
-                name='unique_appointment')
-        ]
+#     class Meta:
+#         ordering = ['appointment_datetime_start']
+#         verbose_name = 'Appointment'
+#         verbose_name_plural = 'Appointments'
+#         constraints = [
+#             models.UniqueConstraint(
+#                 fields=['service', 'client', 'appointment_datetime_start'],
+#                 name='unique_appointment')
+#         ]
 
-    def __str__(self):
-        return f'{self.service} {self.client}'
+#     def __str__(self):
+#         return f'{self.service} {self.client}'

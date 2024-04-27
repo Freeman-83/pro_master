@@ -4,7 +4,7 @@ from django_filters.rest_framework import (FilterSet,
                                            ModelMultipleChoiceFilter)
 
 from services.models import (Category,
-                             Service)
+                             ServiceProfile,)
 
 
 class CategoryFilterSet(FilterSet):
@@ -17,8 +17,8 @@ class CategoryFilterSet(FilterSet):
 
 class ServiceFilterSet(FilterSet):
 
-    activities = ModelMultipleChoiceFilter(
-        field_name='activity__slug',
+    categories = ModelMultipleChoiceFilter(
+        field_name='categories__slug',
         to_field_name='slug',
         queryset=Category.objects.all()
     )
@@ -28,8 +28,8 @@ class ServiceFilterSet(FilterSet):
     )
 
     class Meta:
-        model = Service
-        fields = ('activities',)
+        model = ServiceProfile
+        fields = ('categories',)
 
     def is_exist_filter(self, queryset, name, value):
         lookup = '__'.join([name, 'client'])

@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import CustomUser, ClientProfile, MasterProfile
+from .models import CustomUser, ClientProfile
 
 
 @admin.register(CustomUser)
@@ -17,27 +17,13 @@ class CustomUserAdmin(admin.ModelAdmin):
 
 
 @admin.register(ClientProfile)
-class CustomUserAdmin(admin.ModelAdmin):
+class ClientProfileAdmin(admin.ModelAdmin):
     list_display = ('id',
                     'client',
-                    'username',
+                    'profile_name',
                     'first_name',
                     'last_name',)
-    list_display_links = ('username',)
-    search_fields = ('username',)
-    list_filter = ('username',)
-    empty_value_display = '-пусто-'
-
-
-@admin.register(MasterProfile)
-class CustomUserAdmin(admin.ModelAdmin):
-    list_display = ('id',
-                    'master',
-                    'category',
-                    'username',
-                    'first_name',
-                    'last_name')
-    list_display_links = ('username',)
-    search_fields = ('username',)
-    list_filter = ('username',)
+    list_display_links = ('profile_name',)
+    search_fields = ('profile_name',)
+    list_filter = ('profile_name',)
     empty_value_display = '-пусто-'

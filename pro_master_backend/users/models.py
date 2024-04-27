@@ -6,8 +6,6 @@ from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.hashers import make_password
 from phonenumber_field.modelfields import PhoneNumberField
 
-from services.models import Category
-
 
 class CustomUserManager(UserManager):
     """Кастомный User Manager."""
@@ -52,7 +50,6 @@ class CustomUser(AbstractUser):
         unique=True
     )
     is_master = models.BooleanField('Статус Мастера', default=False)
-    is_organization = models.BooleanField('Статус Организации', default=False)
 
     USERNAME_FIELD = 'email'
     ALT_USERNAME_FIELD = 'phone_number'
@@ -80,8 +77,8 @@ class ClientProfile(models.Model):
         on_delete=models.CASCADE,
         related_name='clients'
     )
-    username = models.CharField(
-        'Логин/Наименование организации',
+    profile_name = models.CharField(
+        'Логин',
         max_length=150,
         null=True,
         blank=True
@@ -103,84 +100,4 @@ class ClientProfile(models.Model):
         upload_to='users/image/',
         null=True,
         blank=True
-    )
-
-
-class MasterProfile(models.Model):
-    """Модель профиля индивидуального Мастера."""
-    master = models.OneToOneField(
-        CustomUser,
-        on_delete=models.CASCADE,
-        related_name='masters'
-    )
-    category = models.ForeignKey(
-        Category,
-        on_delete=models.CASCADE,
-        related_name='masters'
-    )
-    username = models.CharField(
-        'Логин/Наименование организации',
-        max_length=150,
-        null=True,
-        blank=True
-    )
-    first_name = models.CharField(
-        'Имя',
-        max_length=64,
-        default='anonimous'
-    )
-    last_name = models.CharField(
-        'Фамилия',
-        max_length=64,
-        null=True,
-        blank=True
-    )
-    profile_photo = models.ImageField(
-        'Фото профиля',
-        upload_to='users/image/',
-        null=True,
-        blank=True
-    )
-
-
-class OrganizationProfile(models.Model):
-    """Модель профиля Организации."""
-    organization = models.OneToOneField(
-        CustomUser,
-        on_delete=models.CASCADE,
-        related_name='organizations'
-    )
-    name = models.CharField(
-        'Наименование организации',
-        max_length=150,
-        unique=True
-    )
-
-
-class Employee(models.Model):
-    """Модель Сотрудника организации."""
-    first_name = models.CharField(
-        'Имя',
-        max_length=64,
-        default='anonimous'
-    )
-    last_name = models.CharField(
-        'Фамилия',
-        max_length=64,
-        null=True,
-        blank=True
-    )
-    photo = models.ImageField(
-        'Фото профиля',
-        upload_to='users/image/',
-        null=True,
-        blank=True
-    )
-    organization = models.ForeignKey(
-        OrganizationProfile,
-        on_delete=models.CASCADE,
-        related_name='employees'
-    )
-    phone_number = PhoneNumberField(
-        'Номер телефона'
     )
