@@ -3,6 +3,7 @@ from django.contrib.gis.admin import OSMGeoAdmin
 
 from .models import (Category,
                      Comment,
+                     Image,
                     #  Location,
                     #  LocationService,
                      Review,
@@ -14,6 +15,11 @@ class ServiceProfileToCategory(admin.TabularInline):
     min_num = 1
 
 
+class ServiceProfileToImage(admin.TabularInline):
+    model = Image
+    min_num = 1
+
+
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'parent_category')
@@ -21,6 +27,14 @@ class CategoryAdmin(admin.ModelAdmin):
     search_fields = ('name',)
     list_filter = ('name',)
     prepopulated_fields = {'slug': ('name',)}
+    empty_value_display = '-пусто-'
+
+
+@admin.register(Image)
+class ImageAdmin(admin.ModelAdmin):
+    list_display = ('id', 'service_profile', 'image')
+    search_fields = ('service_profile',)
+    list_filter = ('service_profile',)
     empty_value_display = '-пусто-'
 
 
@@ -46,7 +60,7 @@ class ServiceProfileAdmin(admin.ModelAdmin):
     list_filter = ('owner',)
     empty_value_display = '-пусто-'
 
-    inlines = [ServiceProfileToCategory,]
+    inlines = [ServiceProfileToCategory, ServiceProfileToImage]
 
     @admin.display(description='Количество добавлений в избранное')
     def additions_in_favorite_count(self, service):

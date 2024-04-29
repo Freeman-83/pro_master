@@ -19,7 +19,11 @@ class Category(models.Model):
         max_length=256,
         unique=True
     )
-    slug = models.SlugField('Slug', unique=True, max_length=200)
+    slug = models.SlugField(
+        'Slug',
+        max_length=200,
+        unique=True
+    )
     parent_category = models.ForeignKey(
         'self',
         on_delete=models.PROTECT,
@@ -56,7 +60,7 @@ class Category(models.Model):
 
 
 class ServiceProfile(models.Model):
-    """Базовая модель профиля."""
+    """Модель Профиля Сервиса."""
     name = models.CharField(
         'Имя профиля',
         max_length=256
@@ -76,14 +80,8 @@ class ServiceProfile(models.Model):
         related_name='service_profiles'
     )
     profile_foto = models.ImageField(
-        'Фото',
-        upload_to='services/users/image/',
-        null=True,
-        blank=True
-    )
-    profile_images = models.ImageField(
-        'Фото',
-        upload_to='services/profile/image/',
+        'Главное фото профиля',
+        upload_to='services/profile_foto/',
         null=True,
         blank=True
     )
@@ -135,6 +133,20 @@ class ServiceProfile(models.Model):
         return self.name
 
 
+class Image(models.Model):
+    """Модель Изображения."""
+    service_profile = models.ForeignKey(
+        ServiceProfile,
+        on_delete=models.CASCADE,
+        verbose_name='Фото профиля сервиса',
+        related_name='profile_images'
+    )
+    image = models.ImageField(
+        'Фото',
+        upload_to='services/profile_images'
+    )
+
+
 class ServiceProfileCategory(models.Model):
     """Модель отношений Профиль сервиса - Категория."""
     service_profile = models.ForeignKey(
@@ -183,34 +195,34 @@ class ServiceProfileCategory(models.Model):
 #         return f'{self.location} {self.service}'
 
 
-class Employee(models.Model):
-    """Модель Сотрудника организации."""
-    first_name = models.CharField(
-        'Имя',
-        max_length=64,
-         null=True,
-        blank=True
-    )
-    last_name = models.CharField(
-        'Фамилия',
-        max_length=64,
-        null=True,
-        blank=True
-    )
-    photo = models.ImageField(
-        'Фото профиля',
-        upload_to='users/image/',
-        null=True,
-        blank=True
-    )
-    organization = models.ForeignKey(
-        ServiceProfile,
-        on_delete=models.CASCADE,
-        related_name='employees'
-    )
-    phone_number = PhoneNumberField(
-        'Номер телефона'
-    )
+# class Employee(models.Model):
+#     """Модель Сотрудника организации."""
+#     first_name = models.CharField(
+#         'Имя',
+#         max_length=64,
+#          null=True,
+#         blank=True
+#     )
+#     last_name = models.CharField(
+#         'Фамилия',
+#         max_length=64,
+#         null=True,
+#         blank=True
+#     )
+#     photo = models.ImageField(
+#         'Фото профиля',
+#         upload_to='users/image/',
+#         null=True,
+#         blank=True
+#     )
+#     organization = models.ForeignKey(
+#         ServiceProfile,
+#         on_delete=models.CASCADE,
+#         related_name='employees'
+#     )
+#     phone_number = PhoneNumberField(
+#         'Номер телефона'
+#     )
 
 
 class Review(models.Model):

@@ -66,7 +66,7 @@ class CustomUser(AbstractUser):
             ),
         ]
 
-    def __str__(self) -> str:
+    def __str__(self):
         return self.email
 
 

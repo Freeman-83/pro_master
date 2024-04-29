@@ -10,6 +10,7 @@ from django.shortcuts import get_object_or_404
 from drf_extra_fields.fields import Base64ImageField
 
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 from rest_framework.validators import UniqueTogetherValidator
 
 from djoser.serializers import (UserSerializer,
@@ -19,6 +20,7 @@ from djoser.serializers import (UserSerializer,
 from services.models import (Category,
                              Comment,
                              Favorite,
+                             Image,
                              # Location,
                              # LocationService,
                              ServiceProfile,
@@ -26,6 +28,8 @@ from services.models import (Category,
                              Review)
 
 from users.models import ClientProfile
+
+from .utils import get_validated_field
 
 
 User = get_user_model()
@@ -130,8 +134,7 @@ class CategorySerializer(serializers.ModelSerializer):
                   'name',
                   'description',
                   'slug',
-                  'parent',
-                  'categories')
+                  'parent_category')
 
 
 # class LocationSerializer(serializers.ModelSerializer):
@@ -227,6 +230,16 @@ class ServiceProfileContextSerializer(serializers.ModelSerializer):
                   'category')
 
 
+class ImageSerializer(serializers.ModelSerializer):
+    """Сериализатор изображений профиля сервиса."""
+
+    class Meta:
+        model = Image
+        fields = ('id',
+                  'service_profile',
+                  'image')
+
+
 class ServiceProfileSerializer(serializers.ModelSerializer):
     """Сериализатор профиля Сервиса."""
     owner = CustomUserSerializer(
@@ -237,7 +250,10 @@ class ServiceProfileSerializer(serializers.ModelSerializer):
     )
     # locations = LocationSerializer(many=True)
     profile_foto = Base64ImageField()
-    # profile_images = Base64ImageField()
+    profile_images = ImageSerializer(read_only=True, many=True)
+    uploaded_images = serializers.ListField(
+        child=Base64ImageField(), write_only=True
+    )
     created = serializers.DateTimeField(read_only=True, format='%d.%m.%Y')
     reviews = ReviewContextSerializer(read_only=True, many=True)
     rating = serializers.IntegerField(read_only=True)
@@ -252,7 +268,8 @@ class ServiceProfileSerializer(serializers.ModelSerializer):
                   'description',
                   # 'locations',
                   'profile_foto',
-                  # 'profile_images',
+                  'profile_images',
+                  'uploaded_images',
                   'phone_number',
                   'site_address',
                   'social_network_contacts',
@@ -262,6 +279,7 @@ class ServiceProfileSerializer(serializers.ModelSerializer):
                   'reviews',
                   'rating',
                   'is_favorited')
+        depth = 5
 
         validators = [
             UniqueTogetherValidator(queryset=ServiceProfile.objects.all(),
@@ -285,28 +303,18 @@ class ServiceProfileSerializer(serializers.ModelSerializer):
 
     #     return location
 
-    # def validate(self, data):
-    #     activities_list = self.initial_data('activities')
-    #     tags_list = self.initial_data('tags')
-
-    #     activities = get_validated_field(activities_list, Activity)
-    #     tags = get_validated_field(tags_list, Tag)
-
-    #     data.update({'activities': activities,
-    #                  'tags': tags})
-    #     return data
-
     @transaction.atomic
     def create(self, validated_data):
         categories_list = validated_data.pop('categories')
+        images = validated_data.pop('uploaded_images')
         # locations_list = validated_data.pop('locations')
+
         service_profile = ServiceProfile.objects.create(**validated_data)
 
-        for category in categories_list:
-            ServiceProfileCategory.objects.create(
-                service_profile=service_profile,
-                category=category
-            )
+        service_profile.categories.set(categories_list)
+
+        for image in images:
+            Image.objects.create(service_profile=service_profile, image=image)
 
         # for location in locations_list:
         #     location = self.get_location(location)
@@ -316,6 +324,32 @@ class ServiceProfileSerializer(serializers.ModelSerializer):
         #     )
 
         return service_profile
+    
+    @transaction.atomic
+    def update(self, instance, validated_data):
+        categories_list = validated_data.pop('categories', instance.categories)
+
+        images_objects = Image.objects.filter(service_profile=instance)
+        images_list = [obj.image for obj in images_objects]
+        images_list = validated_data.pop('uploaded_images', images_list)
+        
+        # locations_list = validated_data.pop('locations')
+
+        instance = super().update(instance, validated_data)
+        instance.save()
+
+        instance.categories.clear()
+        instance.categories.set(categories_list)
+
+        for image in images_list:
+            Image.objects.update_or_create(
+                service_profile=instance, image=image
+            )
+
+        # instance.locations.clear()
+        # instance.locations.set(locations_list)
+
+        return instance
 
     def get_is_favorited(self, service):
         user = self.context['request'].user
