@@ -267,7 +267,7 @@ class Review(models.Model):
         verbose_name_plural = 'Reviews'
         constraints = [
             models.UniqueConstraint(
-                fields=['service', 'author'],
+                fields=['service_profile', 'author'],
                 name='unique_review'
             )
         ]
