@@ -13,7 +13,7 @@ from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from .filters import CategoryFilterSet, ServiceFilterSet
+from .filters import CategoryFilterSet, ServiceProfileFilterSet
 
 from services.models import (Category,
                              Favorite,
@@ -124,7 +124,7 @@ class ServiceProfileViewSet(viewsets.ModelViewSet):
     serializer_class = ServiceProfileSerializer
     permission_classes = (IsAdminOrMasterOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
-    filterset_class = ServiceFilterSet
+    filterset_class = ServiceProfileFilterSet
 
     def perform_create(self, serializer):
         return serializer.save(owner=self.request.user)

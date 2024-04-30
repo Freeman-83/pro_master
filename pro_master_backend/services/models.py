@@ -19,11 +19,6 @@ class Category(models.Model):
         max_length=256,
         unique=True
     )
-    slug = models.SlugField(
-        'Slug',
-        max_length=200,
-        unique=True
-    )
     parent_category = models.ForeignKey(
         'self',
         on_delete=models.PROTECT,
@@ -70,14 +65,14 @@ class ServiceProfile(models.Model):
         through='ServiceProfileCategory',
         verbose_name='Категории услуг',
     )
-    description = models.TextField(
-        'Описание сервиса'
-    )
     owner = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         verbose_name='Собственник',
         related_name='service_profiles'
+    )
+    description = models.TextField(
+        'Описание сервиса'
     )
     profile_foto = models.ImageField(
         'Главное фото профиля',
@@ -87,20 +82,6 @@ class ServiceProfile(models.Model):
     )
     phone_number = PhoneNumberField(
         'Контактный номер телефона'
-    )
-    site_address = models.URLField(
-        'Адрес сайта',
-        null=True,
-        blank=True
-    )
-    social_network_contacts = models.CharField(
-        'Ссылка на аккаунт в социальных сетях',
-        max_length=100,
-        null=True,
-        blank=True
-    )
-    created = models.DateTimeField(
-        'Дата размещения информации', auto_now_add=True, db_index=True
     )
     first_name = models.CharField(
         'Имя',
@@ -113,6 +94,22 @@ class ServiceProfile(models.Model):
         max_length=64,
         null=True,
         blank=True
+    )
+    site_address = models.URLField(
+        'Адрес сайта',
+        null=True,
+        blank=True
+    )
+    social_network_contacts = models.URLField(
+        'Ссылка на аккаунт в социальных сетях',
+        max_length=100,
+        null=True,
+        blank=True
+    )
+    created = models.DateTimeField(
+        'Дата регистрации в приложении',
+        auto_now_add=True,
+        db_index=True
     )
     is_organization = models.BooleanField(
         'Статус Организации',
@@ -146,6 +143,14 @@ class Image(models.Model):
         upload_to='services/profile_images'
     )
 
+    class Meta:
+        ordering = ['id']
+        verbose_name = 'Image'
+        verbose_name_plural = 'Images'
+
+    def __str__(self):
+        return self.service_profile.name
+
 
 class ServiceProfileCategory(models.Model):
     """Модель отношений Профиль сервиса - Категория."""
@@ -161,13 +166,17 @@ class ServiceProfileCategory(models.Model):
     )
 
     class Meta:
-        verbose_name_plural = 'Профиль Сервиса - Категория'
+        verbose_name = 'Sevice Profile - Category'
+        verbose_name_plural = 'Sevice Profiles - Categories'
         constraints = [
             models.UniqueConstraint(
                 fields=['service_profile', 'category'],
                 name='unique_category_for_service'
             )
         ]
+
+    def __str__(self):
+        return f'{self.service_profile} - {self.category}'
 
 
 # class LocationService(models.Model):
@@ -195,34 +204,39 @@ class ServiceProfileCategory(models.Model):
 #         return f'{self.location} {self.service}'
 
 
-# class Employee(models.Model):
-#     """Модель Сотрудника организации."""
-#     first_name = models.CharField(
-#         'Имя',
-#         max_length=64,
-#          null=True,
-#         blank=True
-#     )
-#     last_name = models.CharField(
-#         'Фамилия',
-#         max_length=64,
-#         null=True,
-#         blank=True
-#     )
-#     photo = models.ImageField(
-#         'Фото профиля',
-#         upload_to='users/image/',
-#         null=True,
-#         blank=True
-#     )
-#     organization = models.ForeignKey(
-#         ServiceProfile,
-#         on_delete=models.CASCADE,
-#         related_name='employees'
-#     )
-#     phone_number = PhoneNumberField(
-#         'Номер телефона'
-#     )
+class Employee(models.Model):
+    """Модель Сотрудника организации."""
+    first_name = models.CharField(
+        'Имя',
+        max_length=64
+    )
+    last_name = models.CharField(
+        'Фамилия',
+        max_length=64
+    )
+    photo = models.ImageField(
+        'Фото профиля',
+        upload_to='users/image/',
+        null=True,
+        blank=True
+    )
+    organization = models.ForeignKey(
+        ServiceProfile,
+        on_delete=models.CASCADE,
+        related_name='employees'
+    )
+    phone_number = PhoneNumberField(
+        'Номер телефона',
+        unique=True
+    )
+
+    class Meta:
+        ordering = ['id']
+        verbose_name = 'Employee'
+        verbose_name_plural = 'Employees'
+
+    def __str__(self):
+        return self.phone_number
 
 
 class Review(models.Model):
@@ -291,16 +305,18 @@ class Favorite(models.Model):
         on_delete=models.CASCADE,
         related_name='favorite_services'
     )
-    service = models.ForeignKey(
+    service_profile = models.ForeignKey(
         ServiceProfile,
         on_delete=models.CASCADE,
         related_name='in_favorite_for_clients'
     )
 
     class Meta:
-        ordering = ['service']
+        ordering = ['service_profile']
+        verbose_name = 'Favorite'
+        verbose_name_plural = 'Favorites'
         constraints = [
-            models.UniqueConstraint(fields=['client', 'service'],
+            models.UniqueConstraint(fields=['client', 'service_profile'],
                                     name='unique_favorite')
         ]
 

@@ -15,11 +15,11 @@ class CategoryFilterSet(FilterSet):
         fields = ('name',)
 
 
-class ServiceFilterSet(FilterSet):
+class ServiceProfileFilterSet(FilterSet):
 
     categories = ModelMultipleChoiceFilter(
-        field_name='categories__slug',
-        to_field_name='slug',
+        field_name='categories__name',
+        to_field_name='name',
         queryset=Category.objects.all()
     )
     is_favorited = BooleanFilter(

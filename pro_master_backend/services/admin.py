@@ -3,6 +3,8 @@ from django.contrib.gis.admin import OSMGeoAdmin
 
 from .models import (Category,
                      Comment,
+                     Employee,
+                     Favorite,
                      Image,
                     #  Location,
                     #  LocationService,
@@ -26,7 +28,6 @@ class CategoryAdmin(admin.ModelAdmin):
     list_display_links = ('name',)
     search_fields = ('name',)
     list_filter = ('name',)
-    prepopulated_fields = {'slug': ('name',)}
     empty_value_display = '-пусто-'
 
 
@@ -72,6 +73,28 @@ class ServiceProfileCategoryAdmin(admin.ModelAdmin):
     list_display = ('id', 'service_profile', 'category')
     search_fields = ('service_profile', 'category')
     list_filter = ('service_profile', 'category')
+    empty_value_display = '-пусто-'
+
+
+@admin.register(Employee)
+class EmployeeAdmin(admin.ModelAdmin):
+    list_display = ('id',
+                    'phone_number',
+                    'first_name',
+                    'last_name',
+                    'organization')
+    list_display_links = ('id',)
+    search_fields = ('phone_number', 'first_name', 'last_name')
+    list_filter = ('organization',)
+    empty_value_display = '-пусто-'
+
+
+@admin.register(Favorite)
+class FavoriteAdmin(admin.ModelAdmin):
+    list_display = ('id', 'service_profile', 'client')
+    list_display_links = ('id',)
+    search_fields = ('service_profile', 'client')
+    list_filter = ('service_profile', 'client')
     empty_value_display = '-пусто-'
 
 

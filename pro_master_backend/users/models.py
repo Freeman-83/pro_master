@@ -59,12 +59,8 @@ class CustomUser(AbstractUser):
 
     class Meta:
         ordering = ['email']
-        constraints = [
-            models.UniqueConstraint(
-                fields=['email', 'phone_number'],
-                name='unique_user'
-            ),
-        ]
+        verbose_name = 'User'
+        verbose_name_plural = 'Users'
 
     def __str__(self):
         return self.email
@@ -101,3 +97,11 @@ class ClientProfile(models.Model):
         null=True,
         blank=True
     )
+
+    class Meta:
+        ordering = ['client']
+        verbose_name = 'Client'
+        verbose_name_plural = 'Clients'
+
+    def __str__(self):
+        return self.email

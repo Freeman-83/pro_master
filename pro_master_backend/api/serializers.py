@@ -19,6 +19,7 @@ from djoser.serializers import (UserSerializer,
 
 from services.models import (Category,
                              Comment,
+                             Employee,
                              Favorite,
                              Image,
                              # Location,
@@ -238,6 +239,19 @@ class ImageSerializer(serializers.ModelSerializer):
         fields = ('id',
                   'service_profile',
                   'image')
+        
+
+class EmployeeSerializer(serializers.ModelSerializer):
+    """Сериализатор Сотрудника организации."""
+    organization = ServiceProfileContextSerializer(read_only=True)
+
+    class Meta:
+        model = Image
+        fields = ('id',
+                  'first_name',
+                  'last_name',
+                  'phone_number',
+                  'organization')
 
 
 class ServiceProfileSerializer(serializers.ModelSerializer):
@@ -255,6 +269,7 @@ class ServiceProfileSerializer(serializers.ModelSerializer):
         child=Base64ImageField(), write_only=True
     )
     created = serializers.DateTimeField(read_only=True, format='%d.%m.%Y')
+    employees = EmployeeSerializer(read_only=True, many=True)
     reviews = ReviewContextSerializer(read_only=True, many=True)
     rating = serializers.IntegerField(read_only=True)
     is_favorited = serializers.SerializerMethodField()
@@ -266,6 +281,8 @@ class ServiceProfileSerializer(serializers.ModelSerializer):
                   'categories',
                   'owner',
                   'description',
+                  'first_name',
+                  'last_name',
                   # 'locations',
                   'profile_foto',
                   'profile_images',
@@ -274,8 +291,7 @@ class ServiceProfileSerializer(serializers.ModelSerializer):
                   'site_address',
                   'social_network_contacts',
                   'created',
-                  'first_name',
-                  'last_name',
+                  'employees',
                   'reviews',
                   'rating',
                   'is_favorited')
