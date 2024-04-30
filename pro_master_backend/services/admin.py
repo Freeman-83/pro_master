@@ -100,10 +100,10 @@ class FavoriteAdmin(admin.ModelAdmin):
 
 @admin.register(Review)
 class ReviewAdmin(admin.ModelAdmin):
-    list_display = ('id', 'service', 'author', 'score')
-    list_display_links = ('service',)
-    search_fields = ('service', 'author')
-    list_filter = ('service', 'author')
+    list_display = ('id', 'service_profile', 'author', 'score')
+    list_display_links = ('service_profile',)
+    search_fields = ('service_profile', 'author')
+    list_filter = ('service_profile', 'author')
     empty_value_display = '-пусто-'
 
 

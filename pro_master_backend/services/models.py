@@ -241,7 +241,7 @@ class Employee(models.Model):
 
 class Review(models.Model):
     """Модель Отзыва."""
-    service = models.ForeignKey(
+    service_profile = models.ForeignKey(
         ServiceProfile,
         verbose_name='Сервис',
         on_delete=models.CASCADE,
@@ -326,7 +326,7 @@ class Favorite(models.Model):
 
 # class Schedule(models.Model):
 #     """Модель Расписания услуги."""
-#     service = models.ForeignKey(
+#     service_profile = models.ForeignKey(
 #         Profile,
 #         on_delete=models.CASCADE,
 #         verbose_name='Услуга',
@@ -347,7 +347,7 @@ class Favorite(models.Model):
 #         verbose_name_plural = 'Schedules'
 #         constraints = [
 #             models.UniqueConstraint(
-#                 fields=['service', 'datetime_start', 'datetime_end'],
+#                 fields=['service_profile', 'datetime_start', 'datetime_end'],
 #                 name='unique_shedule')
 #         ]
 
@@ -357,7 +357,7 @@ class Favorite(models.Model):
 
 # class Appointment(models.Model):
 #     """Модель Записи на услугу."""
-#     service = models.ForeignKey(
+#     service_profile = models.ForeignKey(
 #         Profile,
 #         on_delete=models.CASCADE,
 #         verbose_name='Услуга',
@@ -390,9 +390,9 @@ class Favorite(models.Model):
 #         verbose_name_plural = 'Appointments'
 #         constraints = [
 #             models.UniqueConstraint(
-#                 fields=['service', 'client', 'appointment_datetime_start'],
+#                 fields=['service_profile', 'client', 'appointment_datetime_start'],
 #                 name='unique_appointment')
 #         ]
 
 #     def __str__(self):
-#         return f'{self.service} {self.client}'
+#         return f'{self.service_profile} {self.client}'

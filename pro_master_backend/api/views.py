@@ -31,6 +31,7 @@ from .permissions import (IsAdminOrMasterOrReadOnly,
 from .serializers import (CategorySerializer,
                           ClientProfileSerializer,
                           CommentSerializer,
+                          ImageSerializer,
                         #   LocationSerializer,
                           ServiceProfileContextSerializer,
                           ServiceProfileSerializer,
@@ -140,12 +141,41 @@ class ServiceProfileViewSet(viewsets.ModelViewSet):
                                    Favorite,
                                    pk,
                                    ServiceProfileContextSerializer,
-                                   field='profile')
+                                   field='service_profile')
         return delete_relation(request,
                                ServiceProfile,
                                Favorite,
                                pk,
-                               field='profile')
+                               field='service_profile')
+
+
+@extend_schema(tags=['Изображения'])
+@extend_schema_view(
+    list=extend_schema(summary='Получение списка изображений профиля сервиса'),
+    create=extend_schema(summary='Создание изображения профиля сервиса'),
+    retrieve=extend_schema(summary='Получение изображения профиля сервиса'),
+    update=extend_schema(summary='Изменение изображения профиля сервиса'),
+    partial_update=extend_schema(summary='Частичное изменение изображения профиля сервиса'),
+    destroy=extend_schema(summary='Удаление изображения профиля сервиса'),
+)
+class ImageViewSet(viewsets.ModelViewSet):
+    """Вьюсет Отзывов к Сервисам."""
+    serializer_class = ImageSerializer
+    permission_classes = (IsAdminOrMasterOrReadOnly,)
+
+    def get_queryset(self):
+        service_profile = get_object_or_404(
+            ServiceProfile,
+            pk=self.kwargs.get('profile_id')
+        )
+        return service_profile.profile_images.all()
+
+    def perform_create(self, serializer):
+        service_profile = get_object_or_404(
+            ServiceProfile,
+            pk=self.kwargs.get('profile_id')
+        )
+        serializer.save(service_profile=service_profile)
 
 
 @extend_schema(tags=['Отзывы'])
@@ -163,18 +193,20 @@ class ReviewViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAdminOrAuthorOrReadOnly,)
 
     def get_queryset(self):
-        service = get_object_or_404(
+        service_profile = get_object_or_404(
             ServiceProfile,
             pk=self.kwargs.get('profile_id')
         )
-        return service.reviews.select_related('author').all()
+        return service_profile.reviews.select_related('author').all()
 
     def perform_create(self, serializer):
-        service = get_object_or_404(
+        service_profile = get_object_or_404(
             ServiceProfile,
             pk=self.kwargs.get('profile_id')
         )
-        serializer.save(author=self.request.user, service=service)
+        serializer.save(
+            author=self.request.user, service_profile=service_profile
+        )
 
 
 @extend_schema(tags=['Комментарии'])
@@ -192,18 +224,18 @@ class CommentViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAdminOrAuthorOrReadOnly,)
 
     def get_queryset(self):
-        service = get_object_or_404(
+        service_profile = get_object_or_404(
             ServiceProfile,
             pk=self.kwargs.get('profile_id')
         )
-        review = service.reviews.get(pk=self.kwargs.get('review_id'))
+        review = service_profile.reviews.get(pk=self.kwargs.get('review_id'))
         return review.comments.select_related('author').all()
 
     def perform_create(self, serializer):
         review = get_object_or_404(
             Review,
             id=self.kwargs.get('review_id'),
-            service=self.kwargs.get('service_id')
+            service=self.kwargs.get('profile_id')
         )
         serializer.save(author=self.request.user, review=review)
 

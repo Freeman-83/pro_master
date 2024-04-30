@@ -270,6 +270,7 @@ class ServiceProfileSerializer(serializers.ModelSerializer):
     )
     created = serializers.DateTimeField(read_only=True, format='%d.%m.%Y')
     employees = EmployeeSerializer(read_only=True, many=True)
+    employees_count = serializers.SerializerMethodField()
     reviews = ReviewContextSerializer(read_only=True, many=True)
     rating = serializers.IntegerField(read_only=True)
     is_favorited = serializers.SerializerMethodField()
@@ -292,6 +293,7 @@ class ServiceProfileSerializer(serializers.ModelSerializer):
                   'social_network_contacts',
                   'created',
                   'employees',
+                  'employees_count',
                   'reviews',
                   'rating',
                   'is_favorited')
@@ -366,6 +368,9 @@ class ServiceProfileSerializer(serializers.ModelSerializer):
         # instance.locations.set(locations_list)
 
         return instance
+    
+    def get_employees_count(self, service):
+        return 1 + service.employees.count()
 
     def get_is_favorited(self, service):
         user = self.context['request'].user
