@@ -6,6 +6,7 @@ from .views import (CategoryViewSet,
                     CommentViewSet,
                     ClientProfileViewSet,
                     CustomUserViewSet,
+                    ImageViewSet,
                     ServiceProfileViewSet,
                     ReviewViewSet,)
 
@@ -19,6 +20,11 @@ router.register('users', CustomUserViewSet, basename='users')
 router.register('category', CategoryViewSet)
 router.register('services', ServiceProfileViewSet)
 router.register('clients', ClientProfileViewSet, basename='clients')
+router.register(
+    r'services/(?P<profile_id>\d+)/images',
+    ImageViewSet,
+    basename='images'
+)
 router.register(
     r'services/(?P<profile_id>\d+)/reviews',
     ReviewViewSet,
