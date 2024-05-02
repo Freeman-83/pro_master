@@ -17,6 +17,7 @@ from .filters import CategoryFilterSet, ServiceProfileFilterSet
 
 from services.models import (Category,
                              Favorite,
+                             Image,
                              # Location,
                              ServiceProfile,
                              Review)
@@ -152,30 +153,13 @@ class ServiceProfileViewSet(viewsets.ModelViewSet):
 @extend_schema(tags=['Изображения'])
 @extend_schema_view(
     list=extend_schema(summary='Получение списка изображений профиля сервиса'),
-    create=extend_schema(summary='Создание изображения профиля сервиса'),
     retrieve=extend_schema(summary='Получение изображения профиля сервиса'),
-    update=extend_schema(summary='Изменение изображения профиля сервиса'),
-    partial_update=extend_schema(summary='Частичное изменение изображения профиля сервиса'),
-    destroy=extend_schema(summary='Удаление изображения профиля сервиса'),
 )
-class ImageViewSet(viewsets.ModelViewSet):
+class ImageViewSet(viewsets.ReadOnlyModelViewSet):
     """Вьюсет Отзывов к Сервисам."""
+    queryset = Image.objects.all()
     serializer_class = ImageSerializer
     permission_classes = (IsAdminOrMasterOrReadOnly,)
-
-    def get_queryset(self):
-        service_profile = get_object_or_404(
-            ServiceProfile,
-            pk=self.kwargs.get('profile_id')
-        )
-        return service_profile.profile_images.all()
-
-    def perform_create(self, serializer):
-        service_profile = get_object_or_404(
-            ServiceProfile,
-            pk=self.kwargs.get('profile_id')
-        )
-        serializer.save(service_profile=service_profile)
 
 
 @extend_schema(tags=['Отзывы'])

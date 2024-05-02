@@ -17,7 +17,7 @@ router = routers.DefaultRouter()
 
 router.register('users', CustomUserViewSet, basename='users')
 
-router.register('category', CategoryViewSet)
+router.register('categories', CategoryViewSet)
 router.register('services', ServiceProfileViewSet)
 router.register('clients', ClientProfileViewSet, basename='clients')
 router.register(

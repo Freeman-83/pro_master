@@ -49,7 +49,7 @@ class RegisterUserSerializer(UserCreateSerializer):
 
 
 class CustomTokenCreateSerializer(TokenCreateSerializer):
-    """Кастомный сериализатор получения токена по email/номеру телефона"""
+    """Кастомный сериализатор получения токена по email/номеру телефона."""
 
     password = serializers.CharField(
         required=False, style={'input_type': 'password'}
@@ -92,7 +92,7 @@ class CustomTokenCreateSerializer(TokenCreateSerializer):
 
 
 class CustomUserSerializer(UserSerializer):
-    """Кастомный базовый сериализатор всех пользователей."""
+    """Кастомный базовый сериализатор всех типов пользователей."""
 
     class Meta:
         model = User
@@ -117,7 +117,7 @@ class ClientProfileSerializer(serializers.ModelSerializer):
                   'first_name',
                   'last_name',
                   'favorites_count')
-    
+
     @transaction.atomic
     def create(self, validated_data):
         return super().create(validated_data)
@@ -127,14 +127,12 @@ class ClientProfileSerializer(serializers.ModelSerializer):
 
 
 class CategorySerializer(serializers.ModelSerializer):
-    """Сериализатор Активностей."""
+    """Сериализатор Категории."""
 
     class Meta:
         model = Category
         fields = ('id',
                   'name',
-                  'description',
-                  'slug',
                   'parent_category')
 
 
@@ -246,7 +244,7 @@ class EmployeeSerializer(serializers.ModelSerializer):
     organization = ServiceProfileContextSerializer(read_only=True)
 
     class Meta:
-        model = Image
+        model = Employee
         fields = ('id',
                   'first_name',
                   'last_name',
@@ -372,11 +370,13 @@ class ServiceProfileSerializer(serializers.ModelSerializer):
     def get_employees_count(self, service):
         return 1 + service.employees.count()
 
-    def get_is_favorited(self, service):
+    def get_is_favorited(self, service_profile):
         user = self.context['request'].user
         if user.is_anonymous:
             return False
-        return user.favorite_services.filter(service=service).exists()
+        return user.favorite_services.filter(
+            service_profile=service_profile
+        ).exists()
 
     def to_representation(self, instance):
         data = super().to_representation(instance)

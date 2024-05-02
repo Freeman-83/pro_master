@@ -12,10 +12,27 @@ from phonenumber_field.modelfields import PhoneNumberField
 User = get_user_model()
 
 
+class ServiceType(models.Model):
+    """Модель Типа Сервиса."""
+    name = models.CharField(
+        'Наименование',
+        max_length=256,
+        unique=True
+    )
+
+    class Meta:
+        ordering = ['name']
+        verbose_name = 'OrganizationType'
+        verbose_name_plural = 'OrganizationTypes'
+
+    def __str__(self):
+        return self.name
+
+
 class Category(models.Model):
     """Модель Категории услуги."""
     name = models.CharField(
-        'Наименование категории',
+        'Наименование',
         max_length=256,
         unique=True
     )
@@ -59,6 +76,12 @@ class ServiceProfile(models.Model):
     name = models.CharField(
         'Имя профиля',
         max_length=256
+    )
+    service_type = models.ForeignKey(
+        ServiceType,
+        on_delete=models.CASCADE,
+        verbose_name='Тип сервиса',
+        related_name='service_profiles'
     )
     categories = models.ManyToManyField(
         Category,
