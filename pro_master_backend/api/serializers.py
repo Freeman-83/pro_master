@@ -152,11 +152,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
 class CommentSerializer(serializers.ModelSerializer):
     """Сериализатор Комментариев к Отзывам."""
-    author = serializers.SlugRelatedField(
-        default=serializers.CurrentUserDefault(),
-        slug_field='username',
-        read_only=True
-    )
+    author = ClientProfileSerializer(read_only=True)
     pub_date = serializers.DateTimeField(read_only=True, format='%d.%m.%Y')
 
     class Meta:
@@ -170,15 +166,11 @@ class CommentSerializer(serializers.ModelSerializer):
 
 class ReviewSerializer(serializers.ModelSerializer):
     """Сериализатор Отзывов к Сервисам."""
-    service = serializers.SlugRelatedField(
+    service_profile = serializers.SlugRelatedField(
         slug_field='name',
         read_only=True
     )
-    author = serializers.SlugRelatedField(
-        default=serializers.CurrentUserDefault(),
-        slug_field='username',
-        read_only=True
-    )
+    author = ClientProfileSerializer(read_only=True)
     pub_date = serializers.DateTimeField(read_only=True, format='%d.%m.%Y')
     comments = CommentSerializer(read_only=True, many=True)
 
@@ -194,17 +186,19 @@ class ReviewSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         request = self.context['request']
-        author = request.user
-        service = get_object_or_404(
+        author = request.user.client_profile
+        service_profile = get_object_or_404(
             ServiceProfile,
-            pk=self.context['view'].kwargs.get('service_id')
+            pk=self.context['view'].kwargs.get('profile_id')
         )
-        if author == service.master:
+        if author == service_profile.owner:
             raise serializers.ValidationError(
                 'Запрещено оставлять отзыв о качестве собственных услуг'
             )
         if request.method == 'POST':
-            if Review.objects.filter(service=service, author=author):
+            if Review.objects.filter(
+                service_profile=service_profile, author=author
+            ):
                 raise serializers.ValidationError(
                     'Можно оставить только один отзыв'
                 )
@@ -402,12 +396,11 @@ class ScheduleSerializer(serializers.ModelSerializer):
 class AppointmentSerializer(serializers.ModelSerializer):
     """Сериализатор Расписания работы Сервиса."""
     # service_profile = ServiceProfileContextSerializer(read_only=True)
-    client = ClientProfileSerializer(read_only=True)
+    client_profile = ClientProfileSerializer(read_only=True)
 
     class Meta:
         model = Appointment
         fields = ('id',
                   'schedule',
-                  'client',
-                  'appointment_date',
+                  'client_profile',
                   'appointment_time')

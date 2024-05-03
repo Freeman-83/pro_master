@@ -395,13 +395,6 @@ class Appointment(models.Model):
         verbose_name='Клиент',
         related_name='appointments'
     )
-    appointment_date = models.ForeignKey(
-        Schedule,
-        to_field='date',
-        on_delete=models.CASCADE,
-        verbose_name='День записи',
-        related_name='appointment_days'
-    )
     appointment_time = models.TimeField('Время записи')
 
     class Meta:

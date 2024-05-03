@@ -143,9 +143,10 @@ class ScheduleAdmin(admin.ModelAdmin):
 class AppointmentAdmin(admin.ModelAdmin):
     list_display = ('id',
                     'client_profile',
-                    'appointment_date')
+                    'schedule',
+                    'appointment_time')
     list_display_links = ('client_profile',)
     search_fields = ('client_profile',)
-    list_filter = ('client_profile', 'appointment_date')
+    list_filter = ('client_profile', 'schedule', 'appointment_time')
     empty_value_display = '-пусто-'
 
