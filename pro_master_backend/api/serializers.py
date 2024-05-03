@@ -26,6 +26,7 @@ from services.models import (Appointment,
                              # Location,
                              # LocationService,
                              ServiceProfile,
+                             ServiceType,
                              ServiceProfileCategory,
                              Schedule,
                              Review)
@@ -128,6 +129,15 @@ class ClientProfileSerializer(serializers.ModelSerializer):
         return profile.client.favorite_services.all().count()
 
 
+class ServiceTypeSerializer(serializers.ModelSerializer):
+    """Сериализатор Типа Сервиса."""
+
+    class Meta:
+        model = ServiceType
+        fields = ('id',
+                  'name')
+
+
 class CategorySerializer(serializers.ModelSerializer):
     """Сериализатор Категории."""
 
@@ -216,12 +226,14 @@ class ReviewContextSerializer(serializers.ModelSerializer):
 
 class ServiceProfileContextSerializer(serializers.ModelSerializer):
     """Сериализатор отображения профиля рецепта в других контекстах."""
-    category = serializers.StringRelatedField(many=True)
+    service_type = ServiceTypeSerializer(read_only=True)
+    category = serializers.StringRelatedField(many=True, read_only=True)
 
     class Meta:
         model = ServiceProfile
         fields = ('id',
                   'name',
+                  'service_type',
                   'category')
 
 
@@ -273,6 +285,7 @@ class ServiceProfileSerializer(serializers.ModelSerializer):
         model = ServiceProfile
         fields = ('id',
                   'name',
+                  'service_type',
                   'categories',
                   'owner',
                   'description',
@@ -377,6 +390,7 @@ class ServiceProfileSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         data = super().to_representation(instance)
         data['categories'] = instance.categories.values()
+        data['service_type'] = instance.service_type.name
         return data
 
 

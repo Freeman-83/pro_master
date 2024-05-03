@@ -56,11 +56,13 @@ class ImageAdmin(admin.ModelAdmin):
 class ServiceProfileAdmin(admin.ModelAdmin):
     list_display = ('id',
                     'name',
+                    'service_type',
+                    'owner',
                     'created',
                     'additions_in_favorite_count')
     list_display_links = ('name',)
-    search_fields = ('name', 'owner')
-    list_filter = ('owner',)
+    search_fields = ('name', 'service_type', 'owner')
+    list_filter = ('service_type', 'owner',)
     empty_value_display = '-пусто-'
 
     inlines = [ServiceProfileToCategory, ServiceProfileToImage]
