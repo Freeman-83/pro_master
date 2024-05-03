@@ -274,7 +274,8 @@ class Review(models.Model):
     )
     text = models.TextField('Текст')
     score = models.PositiveSmallIntegerField(
-        'Оценка', validators=[MinValueValidator(1), MaxValueValidator(5)]
+        'Оценка',
+        validators=[MinValueValidator(1), MaxValueValidator(5)]
     )
     author = models.ForeignKey(
         ClientProfile,
@@ -283,7 +284,9 @@ class Review(models.Model):
         related_name='reviews'
     )
     pub_date = models.DateTimeField(
-        'Дата публикации', auto_now_add=True, db_index=True
+        'Дата публикации',
+        auto_now_add=True,
+        db_index=True
     )
 
     class Meta:
@@ -314,7 +317,9 @@ class Comment(models.Model):
         related_name='comments'
     )
     pub_date = models.DateTimeField(
-        'Дата публикации', auto_now_add=True, db_index=True
+        'Дата публикации',
+        auto_now_add=True,
+        db_index=True
     )
 
     class Meta:
