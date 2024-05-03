@@ -15,11 +15,13 @@ from rest_framework.response import Response
 
 from .filters import CategoryFilterSet, ServiceProfileFilterSet
 
-from services.models import (Category,
+from services.models import (Appointment,
+                             Category,
                              Favorite,
                              Image,
                              # Location,
                              ServiceProfile,
+                             Schedule,
                              Review)
 
 from users.models import ClientProfile
@@ -29,13 +31,15 @@ from .permissions import (IsAdminOrMasterOrReadOnly,
                           IsAdminOrAuthorOrReadOnly,
                           IsAdminOrClientOrReadOnly)
 
-from .serializers import (CategorySerializer,
+from .serializers import (AppointmentSerializer,
+                          CategorySerializer,
                           ClientProfileSerializer,
                           CommentSerializer,
                           ImageSerializer,
                         #   LocationSerializer,
                           ServiceProfileContextSerializer,
                           ServiceProfileSerializer,
+                          ScheduleSerializer,
                           ReviewSerializer)
 
 from .utils import create_relation, delete_relation
@@ -84,7 +88,7 @@ class ClientProfileViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         if self.action == 'list' and not self.request.user.is_staff:
-            return ClientProfile.objects.filter(pk=self.request.user.id)
+            return ClientProfile.objects.filter(client=self.request.user)
         return super().get_queryset()
 
     def perform_create(self, serializer):
@@ -189,7 +193,8 @@ class ReviewViewSet(viewsets.ModelViewSet):
             pk=self.kwargs.get('profile_id')
         )
         serializer.save(
-            author=self.request.user, service_profile=service_profile
+            author=self.request.user.client_profile,
+            service_profile=service_profile
         )
 
 
@@ -221,5 +226,70 @@ class CommentViewSet(viewsets.ModelViewSet):
             id=self.kwargs.get('review_id'),
             service=self.kwargs.get('profile_id')
         )
-        serializer.save(author=self.request.user, review=review)
+        serializer.save(
+            author=self.request.user.client_profile,
+            review=review
+        )
 
+
+@extend_schema(tags=['Расписания'])
+@extend_schema_view(
+    list=extend_schema(summary='Получение списка комментариев к отзыву'),
+    create=extend_schema(summary='Создание комментария к отзыву'),
+    retrieve=extend_schema(summary='Получение комментария к отзыву'),
+    update=extend_schema(summary='Изменение комментария к отзыву'),
+    partial_update=extend_schema(summary='Частичное изменение комментария'),
+    destroy=extend_schema(summary='Удаление комментария к отзыву'),
+)
+class ScheduleViewSet(viewsets.ModelViewSet):
+    """Вьюсет Расписания Сервиса."""
+    serializer_class = ScheduleSerializer
+    permission_classes = (IsAdminOrMasterOrReadOnly,)
+
+    def get_queryset(self):
+        service_profile = get_object_or_404(
+            ServiceProfile,
+            pk=self.kwargs.get('profile_id')
+        )
+        return service_profile.schedules.all()
+
+    def perform_create(self, serializer):
+        service_profile = get_object_or_404(
+            ServiceProfile,
+            pk=self.kwargs.get('profile_id')
+        )
+        serializer.save(service_profile=service_profile)
+
+
+@extend_schema(tags=['Записи'])
+@extend_schema_view(
+    list=extend_schema(summary='Получение списка комментариев к отзыву'),
+    create=extend_schema(summary='Создание комментария к отзыву'),
+    retrieve=extend_schema(summary='Получение комментария к отзыву'),
+    update=extend_schema(summary='Изменение комментария к отзыву'),
+    partial_update=extend_schema(summary='Частичное изменение комментария'),
+    destroy=extend_schema(summary='Удаление комментария к отзыву'),
+)
+class AppointmentViewSet(viewsets.ModelViewSet):
+    """Вьюсет Записи."""
+    serializer_class = AppointmentSerializer
+    permission_classes = (IsAdminOrClientOrReadOnly,)
+
+    def get_queryset(self):
+        service_profile = get_object_or_404(
+            ServiceProfile,
+            pk=self.kwargs.get('profile_id')
+        )
+        schedule = service_profile.schedules.get(pk=self.kwargs.get('schedule_id'))
+        return schedule.appointments.all()
+
+    def perform_create(self, serializer):
+        schedule = get_object_or_404(
+            Schedule,
+            pk=self.kwargs.get('profile_id'),
+            schedule=self.kwargs.get('schedule_id')
+        )
+        serializer.save(
+            schedule=schedule,
+            client_profile=self.request.user.client_profile
+        )

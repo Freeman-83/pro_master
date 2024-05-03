@@ -71,7 +71,7 @@ class ClientProfile(models.Model):
     client = models.OneToOneField(
         CustomUser,
         on_delete=models.CASCADE,
-        related_name='clients'
+        related_name='client_profile'
     )
     profile_name = models.CharField(
         'Логин',

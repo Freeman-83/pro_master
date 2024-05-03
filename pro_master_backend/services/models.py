@@ -8,6 +8,8 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 
 from phonenumber_field.modelfields import PhoneNumberField
 
+from users.models import ClientProfile
+
 
 User = get_user_model()
 
@@ -275,7 +277,7 @@ class Review(models.Model):
         'Оценка', validators=[MinValueValidator(1), MaxValueValidator(5)]
     )
     author = models.ForeignKey(
-        User,
+        ClientProfile,
         verbose_name='Автор',
         on_delete=models.CASCADE,
         related_name='reviews'
@@ -306,7 +308,7 @@ class Comment(models.Model):
     )
     text = models.TextField('Текст')
     author = models.ForeignKey(
-        User,
+        ClientProfile,
         verbose_name='Автор',
         on_delete=models.CASCADE,
         related_name='comments'
@@ -323,8 +325,8 @@ class Comment(models.Model):
 
 class Favorite(models.Model):
     """Модель избранных Сервисов."""
-    client = models.ForeignKey(
-        User,
+    client_profile = models.ForeignKey(
+        ClientProfile,
         on_delete=models.CASCADE,
         related_name='favorite_services'
     )
@@ -339,83 +341,73 @@ class Favorite(models.Model):
         verbose_name = 'Favorite'
         verbose_name_plural = 'Favorites'
         constraints = [
-            models.UniqueConstraint(fields=['client', 'service_profile'],
-                                    name='unique_favorite')
+            models.UniqueConstraint(
+                fields=['client_profile', 'service_profile'],
+                name='unique_favorite'
+            )
         ]
 
     def __str__(self):
-        return f'{self.client} {self.service}'
+        return f'{self.client_profile} {self.service_profile}'
 
 
-# class Schedule(models.Model):
-#     """Модель Расписания услуги."""
-#     service_profile = models.ForeignKey(
-#         Profile,
-#         on_delete=models.CASCADE,
-#         verbose_name='Услуга',
-#         related_name='schedules'
-#     )
-#     datetime_start = models.DateTimeField(
-#         'Начало интервала расписания',
-#         unique=True
-#     )
-#     datetime_end = models.DateTimeField(
-#         'Конец интервала расписания',
-#         unique=True
-#     )
+class Schedule(models.Model):
+    """Модель Расписания работы Сервиса."""
+    service_profile = models.ForeignKey(
+        ServiceProfile,
+        on_delete=models.CASCADE,
+        verbose_name='Профиль сервиса',
+        related_name='schedules'
+    )
+    date = models.DateField('Дата рабочего дня', unique=True)
+    start = models.TimeField('Начало рабочего интервала', unique=True)
+    end = models.TimeField('Конец рабочего интервала', unique=True)
 
-#     class Meta:
-#         ordering = ['datetime_start']
-#         verbose_name = 'Schedule'
-#         verbose_name_plural = 'Schedules'
-#         constraints = [
-#             models.UniqueConstraint(
-#                 fields=['service_profile', 'datetime_start', 'datetime_end'],
-#                 name='unique_shedule')
-#         ]
+    class Meta:
+        ordering = ['service_profile']
+        verbose_name = 'Schedule'
+        verbose_name_plural = 'Schedules'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['service_profile', 'date', 'start', 'end'],
+                name='unique_shedule')
+        ]
 
-#     def __str__(self):
-#         return f'{self.datetime_start} {self.datetime_end}'
+    def __str__(self):
+        return f'{self.start} {self.end}'
 
 
-# class Appointment(models.Model):
-#     """Модель Записи на услугу."""
-#     service_profile = models.ForeignKey(
-#         Profile,
-#         on_delete=models.CASCADE,
-#         verbose_name='Услуга',
-#         related_name='appointments'
-#     )
-#     client = models.ForeignKey(
-#         settings.AUTH_USER_MODEL,
-#         on_delete=models.CASCADE,
-#         verbose_name='Клиент',
-#         related_name='appointments'
-#     )
-#     appointment_datetime_start = models.ForeignKey(
-#         Schedule,
-#         to_field='datetime_start',
-#         on_delete=models.CASCADE,
-#         verbose_name='Начало интервала записи',
-#         related_name='appointments_start'
-#     )
-#     appointment_datetime_end = models.ForeignKey(
-#         Schedule,
-#         to_field='datetime_end',
-#         on_delete=models.CASCADE,
-#         verbose_name='Конец интервала записи',
-#         related_name='appointments_end'
-#     )
+class Appointment(models.Model):
+    """Модель Записи на услугу."""
+    schedule = models.ForeignKey(
+        Schedule,
+        on_delete=models.CASCADE,
+        related_name='appointments'
+    )
+    client_profile = models.ForeignKey(
+        ClientProfile,
+        on_delete=models.CASCADE,
+        verbose_name='Клиент',
+        related_name='appointments'
+    )
+    appointment_date = models.ForeignKey(
+        Schedule,
+        to_field='date',
+        on_delete=models.CASCADE,
+        verbose_name='День записи',
+        related_name='appointment_days'
+    )
+    appointment_time = models.TimeField('Время записи')
 
-#     class Meta:
-#         ordering = ['appointment_datetime_start']
-#         verbose_name = 'Appointment'
-#         verbose_name_plural = 'Appointments'
-#         constraints = [
-#             models.UniqueConstraint(
-#                 fields=['service_profile', 'client', 'appointment_datetime_start'],
-#                 name='unique_appointment')
-#         ]
+    class Meta:
+        ordering = ['client_profile']
+        verbose_name = 'Appointment'
+        verbose_name_plural = 'Appointments'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['client_profile', 'appointment_date'],
+                name='unique_appointment')
+        ]
 
-#     def __str__(self):
-#         return f'{self.service_profile} {self.client}'
+    def __str__(self):
+        return f'{self.service_profile} {self.client_profile}'

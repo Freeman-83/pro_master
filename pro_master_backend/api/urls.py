@@ -2,12 +2,14 @@ from django.urls import include, path
 
 from rest_framework import routers
 
-from .views import (CategoryViewSet,
+from .views import (AppointmentViewSet,
+                    CategoryViewSet,
                     CommentViewSet,
                     ClientProfileViewSet,
                     CustomUserViewSet,
                     ImageViewSet,
                     ServiceProfileViewSet,
+                    ScheduleViewSet,
                     ReviewViewSet,)
 
 app_name = 'api'
@@ -34,6 +36,16 @@ router.register(
     r'services/(?P<profile_id>\d+)/reviews/(?P<review_id>\d+)/comments',
     CommentViewSet,
     basename='comments'
+)
+router.register(
+    r'services/(?P<profile_id>\d+)/schedules',
+    ScheduleViewSet,
+    basename='schedules'
+)
+router.register(
+    r'services/(?P<profile_id>\d+)/schedules/(?P<schedule_id>\d+)/appointments',
+    AppointmentViewSet,
+    basename='appointments'
 )
 
 urlpatterns = [

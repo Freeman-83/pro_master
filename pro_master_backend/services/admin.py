@@ -1,7 +1,8 @@
 from django.contrib import admin
 from django.contrib.gis.admin import OSMGeoAdmin
 
-from .models import (Category,
+from .models import (Appointment,
+                     Category,
                      Comment,
                      Employee,
                      Favorite,
@@ -10,7 +11,8 @@ from .models import (Category,
                     #  LocationService,
                      Review,
                      ServiceProfile,
-                     ServiceProfileCategory)
+                     ServiceProfileCategory,
+                     Schedule)
 
 class ServiceProfileToCategory(admin.TabularInline):
     model = ServiceProfileCategory
@@ -91,10 +93,10 @@ class EmployeeAdmin(admin.ModelAdmin):
 
 @admin.register(Favorite)
 class FavoriteAdmin(admin.ModelAdmin):
-    list_display = ('id', 'service_profile', 'client')
+    list_display = ('id', 'service_profile', 'client_profile')
     list_display_links = ('id',)
-    search_fields = ('service_profile', 'client')
-    list_filter = ('service_profile', 'client')
+    search_fields = ('service_profile', 'client_profile')
+    list_filter = ('service_profile', 'client_profile')
     empty_value_display = '-пусто-'
 
 
@@ -124,27 +126,26 @@ class CommentAdmin(admin.ModelAdmin):
 #     empty_value_display = '-пусто-'
 
 
-# @admin.register(Schedule)
-# class ScheduleAdmin(admin.ModelAdmin):
-#     list_display = ('id',
-#                     'service',
-#                     'datetime_start',
-#                     'datetime_end')
-#     list_display_links = ('service',)
-#     search_fields = ('service',)
-#     list_filter = ('service',)
-#     empty_value_display = '-пусто-'
+@admin.register(Schedule)
+class ScheduleAdmin(admin.ModelAdmin):
+    list_display = ('id',
+                    'service_profile',
+                    'date',
+                    'start',
+                    'end')
+    list_display_links = ('service_profile',)
+    search_fields = ('service_profile',)
+    list_filter = ('service_profile', 'date', 'start', 'end')
+    empty_value_display = '-пусто-'
 
 
-# @admin.register(Appointment)
-# class AppointmentAdmin(admin.ModelAdmin):
-#     list_display = ('id',
-#                     'service',
-#                     'client',
-#                     'appointment_datetime_start',
-#                     'appointment_datetime_end')
-#     list_display_links = ('service', 'client')
-#     search_fields = ('service', 'client')
-#     list_filter = ('service', 'client')
-#     empty_value_display = '-пусто-'
+@admin.register(Appointment)
+class AppointmentAdmin(admin.ModelAdmin):
+    list_display = ('id',
+                    'client_profile',
+                    'appointment_date')
+    list_display_links = ('client_profile',)
+    search_fields = ('client_profile',)
+    list_filter = ('client_profile', 'appointment_date')
+    empty_value_display = '-пусто-'
 

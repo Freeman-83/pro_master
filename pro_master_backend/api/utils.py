@@ -6,15 +6,15 @@ from rest_framework.response import Response
 
 
 def create_relation(request, model, model_relation, pk, serializer, field):
-    """Функция создания связи User -> Model."""
+    """Функция создания связи Client -> Model."""
 
     model_obj = get_object_or_404(model, pk=pk)
     model_relation_obj = model_relation.objects.filter(
-        client=request.user, **{field: model_obj}
+        client=request.user.client_profile, **{field: model_obj}
     )
 
     if not model_relation_obj.exists():
-        model_relation.objects.create(client=request.user,
+        model_relation.objects.create(client=request.user.client_profile,
                                       **{field: model_obj})
         serializer = serializer(model_obj, context={'request': request})
         return Response(serializer.data,
@@ -26,11 +26,11 @@ def create_relation(request, model, model_relation, pk, serializer, field):
 
 
 def delete_relation(request, model, model_relation, pk, field):
-    """Функция удаления связи User -> Model."""
+    """Функция удаления связи Client -> Model."""
 
     model_obj = get_object_or_404(model, pk=pk)
     model_relation_obj = model_relation.objects.filter(
-        client=request.user, **{field: model_obj}
+        client=request.user.client_profile, **{field: model_obj}
     )
 
     if model_relation_obj.exists():

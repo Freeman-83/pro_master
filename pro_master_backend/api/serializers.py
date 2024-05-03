@@ -17,7 +17,8 @@ from djoser.serializers import (UserSerializer,
                                 UserCreateSerializer,
                                 TokenCreateSerializer)
 
-from services.models import (Category,
+from services.models import (Appointment,
+                             Category,
                              Comment,
                              Employee,
                              Favorite,
@@ -26,6 +27,7 @@ from services.models import (Category,
                              # LocationService,
                              ServiceProfile,
                              ServiceProfileCategory,
+                             Schedule,
                              Review)
 
 from users.models import ClientProfile
@@ -382,3 +384,30 @@ class ServiceProfileSerializer(serializers.ModelSerializer):
         data = super().to_representation(instance)
         data['categories'] = instance.categories.values()
         return data
+
+
+class ScheduleSerializer(serializers.ModelSerializer):
+    """Сериализатор Расписания работы Сервиса."""
+    service_profile = ServiceProfileContextSerializer(read_only=True)
+
+    class Meta:
+        model = Schedule
+        fields = ('id',
+                  'service_profile',
+                  'date',
+                  'start',
+                  'end')
+
+
+class AppointmentSerializer(serializers.ModelSerializer):
+    """Сериализатор Расписания работы Сервиса."""
+    # service_profile = ServiceProfileContextSerializer(read_only=True)
+    client = ClientProfileSerializer(read_only=True)
+
+    class Meta:
+        model = Appointment
+        fields = ('id',
+                  'schedule',
+                  'client',
+                  'appointment_date',
+                  'appointment_time')
