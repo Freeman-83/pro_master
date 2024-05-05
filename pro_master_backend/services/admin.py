@@ -10,12 +10,19 @@ from .models import (Appointment,
                     #  Location,
                     #  LocationService,
                      Review,
+                     Service,
                      ServiceProfile,
                      ServiceProfileCategory,
+                     ServiceProfileService,
                      Schedule)
 
 class ServiceProfileToCategory(admin.TabularInline):
     model = ServiceProfileCategory
+    min_num = 1
+
+
+class ServiceProfileToService(admin.TabularInline):
+    model = ServiceProfileService
     min_num = 1
 
 
@@ -30,6 +37,19 @@ class CategoryAdmin(admin.ModelAdmin):
     list_display_links = ('name',)
     search_fields = ('name',)
     list_filter = ('name',)
+    empty_value_display = '-пусто-'
+
+
+@admin.register(Service)
+class ServiceAdmin(admin.ModelAdmin):
+    list_display = ('id',
+                    'name',
+                    'category',
+                    'duration',
+                    'price')
+    list_display_links = ('name',)
+    search_fields = ('name', 'category')
+    list_filter = ('name', 'category')
     empty_value_display = '-пусто-'
 
 
@@ -77,6 +97,14 @@ class ServiceProfileCategoryAdmin(admin.ModelAdmin):
     list_display = ('id', 'service_profile', 'category')
     search_fields = ('service_profile', 'category')
     list_filter = ('service_profile', 'category')
+    empty_value_display = '-пусто-'
+
+
+@admin.register(ServiceProfileService)
+class ServiceProfileServiceAdmin(admin.ModelAdmin):
+    list_display = ('id', 'service_profile', 'service')
+    search_fields = ('service_profile', 'service')
+    list_filter = ('service_profile', 'service')
     empty_value_display = '-пусто-'
 
 

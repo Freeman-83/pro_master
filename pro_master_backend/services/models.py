@@ -66,7 +66,8 @@ class Service(models.Model):
         Category,
         on_delete=models.SET_NULL,
         verbose_name='Категория',
-        related_name='services'
+        related_name='services',
+        null=True
     )
     duration = models.PositiveIntegerField(
         'Длительность выполнения (мин)',
@@ -120,7 +121,7 @@ class ServiceProfile(models.Model):
     )
     services = models.ManyToManyField(
         Service,
-        through='ServiceProfileSevice',
+        through='ServiceProfileService',
         verbose_name='Услуги',
     )
     owner = models.ForeignKey(
@@ -463,7 +464,7 @@ class Appointment(models.Model):
         verbose_name_plural = 'Appointments'
         constraints = [
             models.UniqueConstraint(
-                fields=['client_profile', 'appointment_date'],
+                fields=['client_profile', 'appointment_time'],
                 name='unique_appointment')
         ]
 
