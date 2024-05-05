@@ -13,19 +13,21 @@ from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from .filters import CategoryFilterSet, ServiceProfileFilterSet
-
 from services.models import (Appointment,
                              Category,
                              Favorite,
                              Image,
                              # Location,
+                             Service,
                              ServiceProfile,
                              Schedule,
                              Review)
 
 from users.models import ClientProfile
 
+from .filters import (CategoryFilterSet,
+                      ServiceFilterSet,
+                      ServiceProfileFilterSet)
 
 from .permissions import (IsAdminOrMasterOrReadOnly,
                           IsAdminOrAuthorOrReadOnly,
@@ -37,6 +39,7 @@ from .serializers import (AppointmentSerializer,
                           CommentSerializer,
                           ImageSerializer,
                         #   LocationSerializer,
+                          ServiceSerializer,
                           ServiceProfileContextSerializer,
                           ServiceProfileSerializer,
                           ScheduleSerializer,
@@ -109,6 +112,20 @@ class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
     filterset_class = CategoryFilterSet
 
 
+@extend_schema(tags=['Услуги'])
+@extend_schema_view(
+    list=extend_schema(summary='Список услуг'),
+    retrieve=extend_schema(summary='Услуга'),
+)
+class ServiceViewSet(viewsets.ReadOnlyModelViewSet):
+    """Вьюсет Услуги."""
+    queryset = Service.objects.all()
+    serializer_class = ServiceSerializer
+    pagination_class = None
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = ServiceFilterSet
+
+
 @extend_schema(tags=['Профили Сервисов'])
 @extend_schema_view(
     list=extend_schema(summary='Получение списка профилей сервисов'),
@@ -123,7 +140,7 @@ class ServiceProfileViewSet(viewsets.ModelViewSet):
     queryset = ServiceProfile.objects.select_related(
         'owner', 
     ).prefetch_related(
-        'categories'
+        'categories', 'services'
     ).annotate(
         rating=Avg('reviews__score')
     ).all()
