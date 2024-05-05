@@ -50,7 +50,15 @@ from .utils import create_relation, delete_relation
 
 User = get_user_model()
 
-
+@extend_schema(tags=['Пользователи'])
+@extend_schema_view(
+    list=extend_schema(summary='Получение списка пользователей'),
+    create=extend_schema(summary='Создание пользователя'),
+    retrieve=extend_schema(summary='Пользователь'),
+    update=extend_schema(summary='Изменение пользователя'),
+    partial_update=extend_schema(summary='Частичное изменение пользователя'),
+    destroy=extend_schema(summary='Удаление пользователя'),
+)
 class CustomUserViewSet(UserViewSet):
     """Кастомный базовый вьюсет всех пользователей."""
 
@@ -98,10 +106,10 @@ class ClientProfileViewSet(viewsets.ModelViewSet):
         return serializer.save(client=self.request.user)
 
 
-@extend_schema(tags=['Сферы деятельности'])
+@extend_schema(tags=['Категории'])
 @extend_schema_view(
-    list=extend_schema(summary='Список сфер деятельности'),
-    retrieve=extend_schema(summary='Сфера деятельности'),
+    list=extend_schema(summary='Список категорий'),
+    retrieve=extend_schema(summary='Категория'),
 )
 class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
     """Вьюсет Категории."""
@@ -251,12 +259,12 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 @extend_schema(tags=['Расписания'])
 @extend_schema_view(
-    list=extend_schema(summary='Получение списка комментариев к отзыву'),
-    create=extend_schema(summary='Создание комментария к отзыву'),
-    retrieve=extend_schema(summary='Получение комментария к отзыву'),
-    update=extend_schema(summary='Изменение комментария к отзыву'),
-    partial_update=extend_schema(summary='Частичное изменение комментария'),
-    destroy=extend_schema(summary='Удаление комментария к отзыву'),
+    list=extend_schema(summary='Получение списка расписаний сервисов'),
+    create=extend_schema(summary='Создание расписания сервиса'),
+    retrieve=extend_schema(summary='Получение расписания сервиса'),
+    update=extend_schema(summary='Изменение расписания сервиса'),
+    partial_update=extend_schema(summary='Частичное изменение расписания сервиса'),
+    destroy=extend_schema(summary='Удаление расписания сервиса'),
 )
 class ScheduleViewSet(viewsets.ModelViewSet):
     """Вьюсет Расписания Сервиса."""
@@ -280,12 +288,12 @@ class ScheduleViewSet(viewsets.ModelViewSet):
 
 @extend_schema(tags=['Записи'])
 @extend_schema_view(
-    list=extend_schema(summary='Получение списка комментариев к отзыву'),
-    create=extend_schema(summary='Создание комментария к отзыву'),
-    retrieve=extend_schema(summary='Получение комментария к отзыву'),
-    update=extend_schema(summary='Изменение комментария к отзыву'),
-    partial_update=extend_schema(summary='Частичное изменение комментария'),
-    destroy=extend_schema(summary='Удаление комментария к отзыву'),
+    list=extend_schema(summary='Получение списка записей на услугу'),
+    create=extend_schema(summary='Создание записи на услугу'),
+    retrieve=extend_schema(summary='Получение записи на услугу'),
+    update=extend_schema(summary='Изменение записи на услугу'),
+    partial_update=extend_schema(summary='Частичное изменение записи на услугу'),
+    destroy=extend_schema(summary='Удаление записи на услугу'),
 )
 class AppointmentViewSet(viewsets.ModelViewSet):
     """Вьюсет Записи."""

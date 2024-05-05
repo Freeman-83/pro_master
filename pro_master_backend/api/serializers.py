@@ -201,7 +201,7 @@ class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
         fields = ('id',
-                  'service',
+                  'service_profile',
                   'author',
                   'text',
                   'score',
@@ -235,7 +235,11 @@ class ReviewContextSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Review
-        fields = ('id', 'text', 'score', 'author', 'pub_date')
+        fields = ('id',
+                  'text',
+                  'score',
+                  'author',
+                  'pub_date')
 
 
 class ServiceProfileContextSerializer(serializers.ModelSerializer):
