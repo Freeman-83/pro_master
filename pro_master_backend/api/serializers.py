@@ -25,9 +25,11 @@ from services.models import (Appointment,
                              Image,
                              # Location,
                              # LocationService,
+                             Service,
                              ServiceProfile,
                              ServiceType,
                              ServiceProfileCategory,
+                             ServiceProfileService,
                              Schedule,
                              Review)
 
@@ -148,6 +150,18 @@ class CategorySerializer(serializers.ModelSerializer):
                   'parent_category')
 
 
+class ServiceSerializer(serializers.ModelSerializer):
+    """Сериализатор Услуги."""
+
+    class Meta:
+        model = Service
+        fields = ('id',
+                  'name',
+                  'category',
+                  'duration',
+                  'price')
+
+
 # class LocationSerializer(serializers.ModelSerializer):
 #     """Сериализатор Локации."""
 #     address = serializers.CharField(required=False)
@@ -234,7 +248,8 @@ class ServiceProfileContextSerializer(serializers.ModelSerializer):
         fields = ('id',
                   'name',
                   'service_type',
-                  'category')
+                  'category',
+                  'services')
 
 
 class ImageSerializer(serializers.ModelSerializer):
@@ -245,7 +260,7 @@ class ImageSerializer(serializers.ModelSerializer):
         fields = ('id',
                   'service_profile',
                   'image')
-        
+
 
 class EmployeeSerializer(serializers.ModelSerializer):
     """Сериализатор Сотрудника организации."""
@@ -268,6 +283,7 @@ class ServiceProfileSerializer(serializers.ModelSerializer):
     categories = serializers.PrimaryKeyRelatedField(
         queryset=Category.objects.all(), many=True
     )
+    services = ServiceSerializer(many=True)
     # locations = LocationSerializer(many=True)
     profile_foto = Base64ImageField()
     profile_images = ImageSerializer(read_only=True, many=True)
@@ -287,6 +303,7 @@ class ServiceProfileSerializer(serializers.ModelSerializer):
                   'name',
                   'service_type',
                   'categories',
+                  'services',
                   'owner',
                   'description',
                   'first_name',
@@ -331,12 +348,19 @@ class ServiceProfileSerializer(serializers.ModelSerializer):
     @transaction.atomic
     def create(self, validated_data):
         categories_list = validated_data.pop('categories')
+        services_list = validated_data.pop('services')
         images = validated_data.pop('uploaded_images')
         # locations_list = validated_data.pop('locations')
 
         service_profile = ServiceProfile.objects.create(**validated_data)
 
         service_profile.categories.set(categories_list)
+
+        for service in services_list:
+            current_service, _ = Service.objects.get_or_create(**service)
+            ServiceProfileService.objects.create(
+                service_profile=service_profile, service=current_service
+            )
 
         for image in images:
             Image.objects.create(service_profile=service_profile, image=image)
@@ -353,6 +377,7 @@ class ServiceProfileSerializer(serializers.ModelSerializer):
     @transaction.atomic
     def update(self, instance, validated_data):
         categories_list = validated_data.pop('categories', instance.categories)
+        services_list = validated_data.pop('services', instance.services)
 
         images_objects = Image.objects.filter(service_profile=instance)
         images_list = [obj.image for obj in images_objects]
@@ -365,6 +390,12 @@ class ServiceProfileSerializer(serializers.ModelSerializer):
 
         instance.categories.clear()
         instance.categories.set(categories_list)
+
+        for service in services_list:
+            current_service, _ = Service.objects.get_or_create(**service)
+            ServiceProfileService.objects.update_or_create(
+                service_profile=instance, service=current_service
+            )
 
         for image in images_list:
             Image.objects.update_or_create(

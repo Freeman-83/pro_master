@@ -56,6 +56,34 @@ class Category(models.Model):
         return self.name
 
 
+class Service(models.Model):
+    """Модель Услуги."""
+    name = models.CharField(
+        'Наименование',
+        max_length=500
+    )
+    category = models.ForeignKey(
+        Category,
+        on_delete=models.SET_NULL,
+        verbose_name='Категория',
+        related_name='services'
+    )
+    duration = models.PositiveIntegerField(
+        'Длительность выполнения (мин)',
+    )
+    price = models.IntegerField(
+        'Стоимость услуги (руб)'
+    )
+
+    class Meta:
+        ordering = ['name']
+        verbose_name = 'Service'
+        verbose_name_plural = 'Services'
+
+    def __str__(self):
+        return self.name
+
+
 # class Location(gismodels.Model):
 #     """Модель Локации."""
 #     address = models.CharField(
@@ -89,6 +117,11 @@ class ServiceProfile(models.Model):
         Category,
         through='ServiceProfileCategory',
         verbose_name='Категории услуг',
+    )
+    services = models.ManyToManyField(
+        Service,
+        through='ServiceProfileSevice',
+        verbose_name='Услуги',
     )
     owner = models.ForeignKey(
         User,
@@ -196,12 +229,39 @@ class ServiceProfileCategory(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=['service_profile', 'category'],
-                name='unique_category_for_service'
+                name='unique_category_for_service_profile'
             )
         ]
 
     def __str__(self):
         return f'{self.service_profile} - {self.category}'
+
+
+class ServiceProfileService(models.Model):
+    """Модель отношений Профиль сервиса - Услуга."""
+    service_profile = models.ForeignKey(
+        ServiceProfile,
+        on_delete=models.CASCADE,
+        related_name='in_services'
+    )
+    service = models.ForeignKey(
+        Service,
+        on_delete=models.CASCADE,
+        related_name='in_service_profiles'
+    )
+
+    class Meta:
+        verbose_name = 'Sevice Profile - Service'
+        verbose_name_plural = 'Sevice Profiles - Services'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['service_profile', 'service'],
+                name='unique_service_for_service_profile'
+            )
+        ]
+
+    def __str__(self):
+        return f'{self.service_profile} - {self.service}'
 
 
 # class LocationService(models.Model):
