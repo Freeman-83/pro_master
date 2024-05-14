@@ -13,17 +13,18 @@ from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from services.models import (Appointment,
-                             Category,
+from appointments.models import (Appointment,
+                                 Schedule)
+
+from clients.models import ClientProfile
+
+from services.models import (Category,
                              Favorite,
                              Image,
                              # Location,
                              Service,
                              ServiceProfile,
-                             Schedule,
                              Review)
-
-from users.models import ClientProfile
 
 from .filters import (CategoryFilterSet,
                       ServiceFilterSet,

@@ -17,8 +17,12 @@ from djoser.serializers import (UserSerializer,
                                 UserCreateSerializer,
                                 TokenCreateSerializer)
 
-from services.models import (Appointment,
-                             Category,
+from appointments.models import (Appointment,
+                                 Schedule)
+
+from clients.models import ClientProfile
+
+from services.models import (Category,
                              Comment,
                              Employee,
                              Favorite,
@@ -30,10 +34,7 @@ from services.models import (Appointment,
                              ServiceType,
                              ServiceProfileCategory,
                              ServiceProfileService,
-                             Schedule,
                              Review)
-
-from users.models import ClientProfile
 
 from .utils import get_validated_field
 

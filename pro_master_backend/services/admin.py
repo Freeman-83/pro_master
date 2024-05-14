@@ -1,8 +1,7 @@
 from django.contrib import admin
 from django.contrib.gis.admin import OSMGeoAdmin
 
-from .models import (Appointment,
-                     Category,
+from .models import (Category,
                      Comment,
                      Employee,
                      Favorite,
@@ -13,8 +12,7 @@ from .models import (Appointment,
                      Service,
                      ServiceProfile,
                      ServiceProfileCategory,
-                     ServiceProfileService,
-                     Schedule)
+                     ServiceProfileService)
 
 class ServiceProfileToCategory(admin.TabularInline):
     model = ServiceProfileCategory
@@ -156,27 +154,5 @@ class CommentAdmin(admin.ModelAdmin):
 #     empty_value_display = '-пусто-'
 
 
-@admin.register(Schedule)
-class ScheduleAdmin(admin.ModelAdmin):
-    list_display = ('id',
-                    'service_profile',
-                    'date',
-                    'start',
-                    'end')
-    list_display_links = ('service_profile',)
-    search_fields = ('service_profile',)
-    list_filter = ('service_profile', 'date', 'start', 'end')
-    empty_value_display = '-пусто-'
 
-
-@admin.register(Appointment)
-class AppointmentAdmin(admin.ModelAdmin):
-    list_display = ('id',
-                    'client_profile',
-                    'schedule',
-                    'appointment_time')
-    list_display_links = ('client_profile',)
-    search_fields = ('client_profile',)
-    list_filter = ('client_profile', 'schedule', 'appointment_time')
-    empty_value_display = '-пусто-'
 

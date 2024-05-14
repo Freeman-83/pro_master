@@ -51,8 +51,10 @@ INSTALLED_APPS = [
     'drf_spectacular',
     'phonenumber_field',
     'api.apps.ApiConfig',
-    'users.apps.UsersConfig',
+    'appointments.apps.AppointmentsConfig',
+    'clients.apps.ClientsConfig',
     'services.apps.ServicesConfig',
+    'users.apps.UsersConfig',
 ]
 
 MIDDLEWARE = [
