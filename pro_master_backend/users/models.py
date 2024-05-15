@@ -39,6 +39,7 @@ class CustomUserManager(UserManager):
 
 class CustomUser(AbstractUser):
     """Кастомная модель пользователя."""
+
     username = None
     email = models.EmailField(
         _('email'),
@@ -49,7 +50,10 @@ class CustomUser(AbstractUser):
         'Номер телефона',
         unique=True
     )
-    is_master = models.BooleanField('Статус Мастера', default=False)
+    is_master = models.BooleanField(
+        'Статус Мастера',
+        default=False
+    )
 
     USERNAME_FIELD = 'email'
     ALT_USERNAME_FIELD = 'phone_number'

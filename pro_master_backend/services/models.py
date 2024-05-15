@@ -1,8 +1,7 @@
-from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.gis.db import models as gismodels
-from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
+from django.db import models
 
 # from colorfield.fields import ColorField
 
@@ -16,6 +15,7 @@ User = get_user_model()
 
 class Category(models.Model):
     """Модель Категории услуги."""
+
     name = models.CharField(
         'Наименование',
         max_length=256,
@@ -41,16 +41,13 @@ class Category(models.Model):
 
 class Service(models.Model):
     """Модель Услуги."""
+
     name = models.CharField(
         'Наименование',
         max_length=500
     )
-    duration = models.PositiveIntegerField(
-        'Длительность выполнения (мин)',
-    )
-    price = models.IntegerField(
-        'Стоимость услуги (руб)'
-    )
+    duration = models.PositiveIntegerField('Длительность выполнения (мин)')
+    price = models.IntegerField('Стоимость услуги (руб)')
 
     class Meta:
         ordering = ['name']
@@ -80,6 +77,7 @@ class Service(models.Model):
 
 class ServiceProfile(models.Model):
     """Модель Профиля сервиса."""
+
     name = models.CharField(
         'Имя профиля',
         max_length=256
@@ -87,12 +85,12 @@ class ServiceProfile(models.Model):
     categories = models.ManyToManyField(
         Category,
         through='ServiceProfileCategory',
-        verbose_name='Категории услуг',
+        verbose_name='Категории услуг'
     )
     services = models.ManyToManyField(
         Service,
         through='ServiceProfileService',
-        verbose_name='Услуги',
+        verbose_name='Услуги'
     )
     owner = models.ForeignKey(
         User,
@@ -102,24 +100,20 @@ class ServiceProfile(models.Model):
     )
     owner_first_name = models.CharField(
         'Имя',
-        max_length=128,
+        max_length=128
     )
     owner_last_name = models.CharField(
         'Фамилия',
-        max_length=128,
+        max_length=128
     )
-    description = models.TextField(
-        'Описание сервиса'
-    )
+    description = models.TextField('Описание сервиса')
     profile_foto = models.ImageField(
         'Главное фото профиля',
         upload_to='services/profile_foto/',
         null=True,
         blank=True
     )
-    phone_number = PhoneNumberField(
-        'Контактный номер телефона'
-    )
+    phone_number = PhoneNumberField('Контактный номер телефона')
     site_address = models.URLField(
         'Адрес сайта',
         null=True,
@@ -157,6 +151,7 @@ class ServiceProfile(models.Model):
 
 class Image(models.Model):
     """Модель Изображения."""
+
     service_profile = models.ForeignKey(
         ServiceProfile,
         on_delete=models.CASCADE,
@@ -179,6 +174,7 @@ class Image(models.Model):
 
 class ServiceProfileCategory(models.Model):
     """Модель отношений Профиль сервиса - Категория."""
+
     service_profile = models.ForeignKey(
         ServiceProfile,
         on_delete=models.CASCADE,
@@ -206,6 +202,7 @@ class ServiceProfileCategory(models.Model):
 
 class ServiceProfileService(models.Model):
     """Модель отношений Профиль сервиса - Услуга."""
+
     service_profile = models.ForeignKey(
         ServiceProfile,
         on_delete=models.CASCADE,
@@ -258,6 +255,7 @@ class ServiceProfileService(models.Model):
 
 class Employee(models.Model):
     """Модель Сотрудника организации."""
+
     first_name = models.CharField(
         'Имя',
         max_length=64
@@ -293,6 +291,7 @@ class Employee(models.Model):
 
 class Review(models.Model):
     """Модель Отзыва."""
+
     service_profile = models.ForeignKey(
         ServiceProfile,
         verbose_name='Сервис',
@@ -330,6 +329,7 @@ class Review(models.Model):
 
 class Comment(models.Model):
     """Модель Комментария к Отзыву."""
+
     review = models.ForeignKey(
         Review,
         verbose_name='Отзыв',
@@ -357,6 +357,7 @@ class Comment(models.Model):
 
 class Favorite(models.Model):
     """Модель избранных Профилей сервисов."""
+
     client_profile = models.ForeignKey(
         ClientProfile,
         on_delete=models.CASCADE,
@@ -380,4 +381,4 @@ class Favorite(models.Model):
         ]
 
     def __str__(self):
-        return f'{self.client_profile} {self.service_profile}'
+        return f'{self.client_profile} - {self.service_profile}'

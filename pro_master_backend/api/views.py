@@ -1,14 +1,14 @@
 from django.contrib.auth import get_user_model
 from django.db.models import Avg
-from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
 
 from djoser.conf import settings
 from djoser.views import UserViewSet
 
 from drf_spectacular.utils import extend_schema, extend_schema_view
 
-from rest_framework import mixins, permissions, viewsets
+from rest_framework import mixins, pagination, permissions, viewsets
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -50,6 +50,7 @@ from .utils import create_relation, delete_relation
 
 
 User = get_user_model()
+
 
 @extend_schema(tags=['Пользователи'])
 @extend_schema_view(
@@ -94,6 +95,7 @@ class CustomUserViewSet(UserViewSet):
 )
 class ClientProfileViewSet(viewsets.ModelViewSet):
     """Кастомный вьюсет Клиента."""
+
     queryset = ClientProfile.objects.all()
     serializer_class = ClientProfileSerializer
     permission_classes = (IsAdminOrClientOrReadOnly,)
@@ -114,6 +116,7 @@ class ClientProfileViewSet(viewsets.ModelViewSet):
 )
 class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
     """Вьюсет Категории."""
+
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     pagination_class = None
@@ -128,9 +131,9 @@ class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
 )
 class ServiceViewSet(viewsets.ModelViewSet):
     """Вьюсет Услуги."""
+
     queryset = Service.objects.all()
     serializer_class = ServiceSerializer
-    pagination_class = None
     filter_backends = (DjangoFilterBackend,)
     filterset_class = ServiceFilterSet
 
@@ -146,6 +149,7 @@ class ServiceViewSet(viewsets.ModelViewSet):
 )
 class ServiceProfileViewSet(viewsets.ModelViewSet):
     """Вьюсет Профиля Сервиса."""
+
     queryset = ServiceProfile.objects.select_related(
         'owner', 
     ).prefetch_related(
@@ -187,6 +191,7 @@ class ServiceProfileViewSet(viewsets.ModelViewSet):
 )
 class ImageViewSet(viewsets.ReadOnlyModelViewSet):
     """Вьюсет Отзывов к Сервисам."""
+
     queryset = Image.objects.all()
     serializer_class = ImageSerializer
     permission_classes = (IsAdminOrMasterOrReadOnly,)
@@ -203,6 +208,7 @@ class ImageViewSet(viewsets.ReadOnlyModelViewSet):
 )
 class ReviewViewSet(viewsets.ModelViewSet):
     """Вьюсет Отзывов к Сервисам."""
+
     serializer_class = ReviewSerializer
     permission_classes = (IsAdminOrAuthorOrReadOnly,)
 
@@ -235,6 +241,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 )
 class CommentViewSet(viewsets.ModelViewSet):
     """Вьюсет Комментариев к Отзывам."""
+
     serializer_class = CommentSerializer
     permission_classes = (IsAdminOrAuthorOrReadOnly,)
 
@@ -269,6 +276,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 )
 class ScheduleViewSet(viewsets.ModelViewSet):
     """Вьюсет Расписания Сервиса."""
+
     serializer_class = ScheduleSerializer
     permission_classes = (IsAdminOrMasterOrReadOnly,)
 
@@ -298,6 +306,7 @@ class ScheduleViewSet(viewsets.ModelViewSet):
 )
 class AppointmentViewSet(viewsets.ModelViewSet):
     """Вьюсет Записи."""
+
     serializer_class = AppointmentSerializer
     permission_classes = (IsAdminOrClientOrReadOnly,)
 

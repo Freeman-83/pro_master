@@ -7,15 +7,25 @@ from services.models import ServiceProfile
 
 class Schedule(models.Model):
     """Модель Расписания работы Сервиса."""
+
     service_profile = models.ForeignKey(
         ServiceProfile,
         on_delete=models.CASCADE,
         verbose_name='Профиль сервиса',
         related_name='schedules'
     )
-    date = models.DateField('Дата рабочего дня', unique=True)
-    start = models.TimeField('Начало рабочего интервала', unique=True)
-    end = models.TimeField('Конец рабочего интервала', unique=True)
+    date = models.DateField(
+        'Дата рабочего дня',
+        unique=True
+    )
+    start = models.TimeField(
+        'Начало рабочего интервала',
+        unique=True
+    )
+    end = models.TimeField(
+        'Конец рабочего интервала',
+        unique=True
+    )
 
     class Meta:
         ordering = ['service_profile']
@@ -33,6 +43,7 @@ class Schedule(models.Model):
 
 class Appointment(models.Model):
     """Модель Записи на услугу."""
+
     schedule = models.ForeignKey(
         Schedule,
         on_delete=models.CASCADE,

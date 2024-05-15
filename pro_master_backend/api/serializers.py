@@ -13,9 +13,9 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from rest_framework.validators import UniqueTogetherValidator
 
-from djoser.serializers import (UserSerializer,
-                                UserCreateSerializer,
-                                TokenCreateSerializer)
+from djoser.serializers import (TokenCreateSerializer,
+                                UserSerializer,
+                                UserCreateSerializer)
 
 from appointments.models import (Appointment,
                                  Schedule)
@@ -29,11 +29,11 @@ from services.models import (Category,
                              Image,
                              # Location,
                              # LocationService,
+                             Review,
                              Service,
                              ServiceProfile,
                              ServiceProfileCategory,
-                             ServiceProfileService,
-                             Review)
+                             ServiceProfileService)
 
 from .utils import get_validated_field
 
@@ -57,7 +57,8 @@ class CustomTokenCreateSerializer(TokenCreateSerializer):
     """Кастомный сериализатор получения токена по email/номеру телефона."""
 
     password = serializers.CharField(
-        required=False, style={'input_type': 'password'}
+        required=False,
+        style={'input_type': 'password'}
     )
     field = User.USERNAME_FIELD
     alt_field = User.ALT_USERNAME_FIELD
@@ -109,6 +110,7 @@ class CustomUserSerializer(UserSerializer):
 
 class ClientProfileSerializer(serializers.ModelSerializer):
     """Кастомный сериализатор Клиента."""
+
     client = CustomUserSerializer(
         default=serializers.CurrentUserDefault()
     )
@@ -166,6 +168,7 @@ class ServiceSerializer(serializers.ModelSerializer):
 
 class CommentSerializer(serializers.ModelSerializer):
     """Сериализатор Комментариев к Отзывам."""
+
     author = ClientProfileSerializer(read_only=True)
     pub_date = serializers.DateTimeField(read_only=True, format='%d.%m.%Y')
 
@@ -180,13 +183,20 @@ class CommentSerializer(serializers.ModelSerializer):
 
 class ReviewSerializer(serializers.ModelSerializer):
     """Сериализатор Отзывов к Сервисам."""
+
     service_profile = serializers.SlugRelatedField(
         slug_field='name',
         read_only=True
     )
     author = ClientProfileSerializer(read_only=True)
-    pub_date = serializers.DateTimeField(read_only=True, format='%d.%m.%Y')
-    comments = CommentSerializer(read_only=True, many=True)
+    pub_date = serializers.DateTimeField(
+        read_only=True,
+        format='%d.%m.%Y'
+    )
+    comments = CommentSerializer(
+        read_only=True,
+        many=True
+    )
 
     class Meta:
         model = Review
@@ -211,7 +221,8 @@ class ReviewSerializer(serializers.ModelSerializer):
             )
         if request.method == 'POST':
             if Review.objects.filter(
-                service_profile=service_profile, author=author
+                service_profile=service_profile,
+                author=author
             ):
                 raise serializers.ValidationError(
                     'Можно оставить только один отзыв'
@@ -221,7 +232,11 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 class ReviewContextSerializer(serializers.ModelSerializer):
     """Сериализатор Отзывов к Сервисам в других контекстах."""
-    pub_date = serializers.DateTimeField(read_only=True, format='%d.%m.%Y')
+
+    pub_date = serializers.DateTimeField(
+        read_only=True,
+        format='%d.%m.%Y'
+    )
 
     class Meta:
         model = Review
@@ -234,7 +249,11 @@ class ReviewContextSerializer(serializers.ModelSerializer):
 
 class ServiceProfileContextSerializer(serializers.ModelSerializer):
     """Сериализатор отображения профиля рецепта в других контекстах."""
-    category = serializers.StringRelatedField(many=True, read_only=True)
+
+    category = serializers.StringRelatedField(
+        many=True,
+        read_only=True
+    )
 
     class Meta:
         model = ServiceProfile
@@ -256,6 +275,7 @@ class ImageSerializer(serializers.ModelSerializer):
 
 class EmployeeSerializer(serializers.ModelSerializer):
     """Сериализатор Сотрудника организации."""
+
     organization = ServiceProfileContextSerializer(read_only=True)
 
     class Meta:
@@ -269,23 +289,38 @@ class EmployeeSerializer(serializers.ModelSerializer):
 
 class ServiceProfileSerializer(serializers.ModelSerializer):
     """Сериализатор профиля Сервиса."""
+
     owner = CustomUserSerializer(
         default=serializers.CurrentUserDefault()
     )
     categories = serializers.PrimaryKeyRelatedField(
-        queryset=Category.objects.all(), many=True
+        queryset=Category.objects.all(),
+        many=True
     )
     services = ServiceSerializer(many=True)
     # locations = LocationSerializer(many=True)
     profile_foto = Base64ImageField()
-    profile_images = ImageSerializer(read_only=True, many=True)
-    uploaded_images = serializers.ListField(
-        child=Base64ImageField(), write_only=True
+    profile_images = ImageSerializer(
+        read_only=True,
+        many=True
     )
-    created = serializers.DateTimeField(read_only=True, format='%d.%m.%Y')
-    employees = EmployeeSerializer(read_only=True, many=True)
+    uploaded_images = serializers.ListField(
+        child=Base64ImageField(),
+        write_only=True
+    )
+    created = serializers.DateTimeField(
+        read_only=True,
+        format='%d.%m.%Y'
+    )
+    employees = EmployeeSerializer(
+        read_only=True,
+        many=True
+    )
     employees_count = serializers.SerializerMethodField()
-    reviews = ReviewContextSerializer(read_only=True, many=True)
+    reviews = ReviewContextSerializer(
+        read_only=True,
+        many=True
+    )
     rating = serializers.IntegerField(read_only=True)
     additions_in_favorite_count = serializers.SerializerMethodField()
     is_favorited = serializers.SerializerMethodField()
@@ -317,8 +352,10 @@ class ServiceProfileSerializer(serializers.ModelSerializer):
         depth = 5
 
         validators = [
-            UniqueTogetherValidator(queryset=ServiceProfile.objects.all(),
-                                    fields=['owner', 'name'])
+            UniqueTogetherValidator(
+                queryset=ServiceProfile.objects.all(),
+                fields=['owner', 'name']
+            )
         ]
 
     # def get_location(self, location):
@@ -352,11 +389,15 @@ class ServiceProfileSerializer(serializers.ModelSerializer):
         for service in services_list:
             current_service, _ = Service.objects.get_or_create(**service)
             ServiceProfileService.objects.create(
-                service_profile=service_profile, service=current_service
+                service_profile=service_profile,
+                service=current_service
             )
 
         for image in images:
-            Image.objects.create(service_profile=service_profile, image=image)
+            Image.objects.create(
+                service_profile=service_profile,
+                image=image
+            )
 
         # for location in locations_list:
         #     location = self.get_location(location)
@@ -387,12 +428,14 @@ class ServiceProfileSerializer(serializers.ModelSerializer):
         for service in services_list:
             current_service, _ = Service.objects.get_or_create(**service)
             ServiceProfileService.objects.update_or_create(
-                service_profile=instance, service=current_service
+                service_profile=instance,
+                service=current_service
             )
 
         for image in images_list:
             Image.objects.update_or_create(
-                service_profile=instance, image=image
+                service_profile=instance,
+                image=image
             )
 
         # instance.locations.clear()
@@ -422,6 +465,7 @@ class ServiceProfileSerializer(serializers.ModelSerializer):
 
 class ScheduleSerializer(serializers.ModelSerializer):
     """Сериализатор Расписания работы Сервиса."""
+
     service_profile = ServiceProfileContextSerializer(read_only=True)
 
     class Meta:
@@ -435,7 +479,7 @@ class ScheduleSerializer(serializers.ModelSerializer):
 
 class AppointmentSerializer(serializers.ModelSerializer):
     """Сериализатор Расписания работы Сервиса."""
-    # service_profile = ServiceProfileContextSerializer(read_only=True)
+
     client_profile = ClientProfileSerializer(read_only=True)
 
     class Meta:

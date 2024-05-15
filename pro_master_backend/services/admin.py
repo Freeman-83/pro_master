@@ -149,7 +149,3 @@ class CommentAdmin(admin.ModelAdmin):
 #     search_fields = ('location', 'service')
 #     list_filter = ('location', 'service')
 #     empty_value_display = '-пусто-'
-
-
-
-

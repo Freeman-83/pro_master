@@ -1,15 +1,20 @@
-from django_filters.rest_framework import (FilterSet,
-                                           BooleanFilter,
+from django_filters.rest_framework import (BooleanFilter,
                                            CharFilter,
+                                           FilterSet,
                                            ModelMultipleChoiceFilter)
 
 from services.models import (Category,
                              Service,
-                             ServiceProfile,)
+                             ServiceProfile)
 
 
 class CategoryFilterSet(FilterSet):
-    name = CharFilter(field_name='name', lookup_expr='istartswith')
+    """Фильтр Категорий."""
+
+    name = CharFilter(
+        field_name='name',
+        lookup_expr='istartswith'
+    )
 
     class Meta:
         model = Category
@@ -17,7 +22,12 @@ class CategoryFilterSet(FilterSet):
 
 
 class ServiceFilterSet(FilterSet):
-    name = CharFilter(field_name='name', lookup_expr='istartswith')
+    """Фильтр Услуг."""
+
+    name = CharFilter(
+        field_name='name',
+        lookup_expr='istartswith'
+    )
 
     class Meta:
         model = Service
@@ -25,6 +35,7 @@ class ServiceFilterSet(FilterSet):
 
 
 class ServiceProfileFilterSet(FilterSet):
+    """Фильтр Профилей сервисов по категориям, услугам, наличию в избранном."""
 
     categories = ModelMultipleChoiceFilter(
         field_name='categories__name',

@@ -7,6 +7,7 @@ User = get_user_model()
 
 class ClientProfile(models.Model):
     """Модель профиля Клиента."""
+
     client = models.OneToOneField(
         User,
         on_delete=models.CASCADE,

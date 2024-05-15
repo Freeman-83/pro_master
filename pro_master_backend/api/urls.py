@@ -8,20 +8,19 @@ from .views import (AppointmentViewSet,
                     ClientProfileViewSet,
                     CustomUserViewSet,
                     ImageViewSet,
+                    ReviewViewSet,
                     ServiceProfileViewSet,
-                    ScheduleViewSet,
-                    ReviewViewSet,)
+                    ScheduleViewSet)
 
 app_name = 'api'
 
 router = routers.DefaultRouter()
 
 
-router.register('users', CustomUserViewSet, basename='users')
-
 router.register('categories', CategoryViewSet)
-router.register('service_profiles', ServiceProfileViewSet)
 router.register('clients', ClientProfileViewSet, basename='clients')
+router.register('service_profiles', ServiceProfileViewSet)
+router.register('users', CustomUserViewSet, basename='users')
 router.register(
     r'services/(?P<profile_id>\d+)/images',
     ImageViewSet,
