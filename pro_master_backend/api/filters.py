@@ -46,7 +46,7 @@ class ServiceProfileFilterSet(FilterSet):
         fields = ('categories',)
 
     def is_exist_filter(self, queryset, name, value):
-        lookup = '__'.join([name, 'client'])
+        lookup = '__'.join([name, 'client_profile'])
         if self.request.user.is_anonymous:
             return queryset
-        return queryset.filter(**{lookup: self.request.user})
+        return queryset.filter(**{lookup: self.request.user.client_profile})

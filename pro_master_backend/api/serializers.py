@@ -31,7 +31,6 @@ from services.models import (Category,
                              # LocationService,
                              Service,
                              ServiceProfile,
-                             ServiceType,
                              ServiceProfileCategory,
                              ServiceProfileService,
                              Review)
@@ -129,16 +128,7 @@ class ClientProfileSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
     def get_favorites_count(self, profile):
-        return profile.client.favorite_services.all().count()
-
-
-class ServiceTypeSerializer(serializers.ModelSerializer):
-    """Сериализатор Типа Сервиса."""
-
-    class Meta:
-        model = ServiceType
-        fields = ('id',
-                  'name')
+        return profile.favorite_services.all().count()
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -158,7 +148,6 @@ class ServiceSerializer(serializers.ModelSerializer):
         model = Service
         fields = ('id',
                   'name',
-                  'category',
                   'duration',
                   'price')
 
@@ -245,14 +234,12 @@ class ReviewContextSerializer(serializers.ModelSerializer):
 
 class ServiceProfileContextSerializer(serializers.ModelSerializer):
     """Сериализатор отображения профиля рецепта в других контекстах."""
-    service_type = ServiceTypeSerializer(read_only=True)
     category = serializers.StringRelatedField(many=True, read_only=True)
 
     class Meta:
         model = ServiceProfile
         fields = ('id',
                   'name',
-                  'service_type',
                   'category',
                   'services')
 
@@ -300,19 +287,19 @@ class ServiceProfileSerializer(serializers.ModelSerializer):
     employees_count = serializers.SerializerMethodField()
     reviews = ReviewContextSerializer(read_only=True, many=True)
     rating = serializers.IntegerField(read_only=True)
+    additions_in_favorite_count = serializers.SerializerMethodField()
     is_favorited = serializers.SerializerMethodField()
 
     class Meta:
         model = ServiceProfile
         fields = ('id',
                   'name',
-                  'service_type',
                   'categories',
                   'services',
                   'owner',
                   'description',
-                  'first_name',
-                  'last_name',
+                  'owner_first_name',
+                  'owner_last_name',
                   # 'locations',
                   'profile_foto',
                   'profile_images',
@@ -325,6 +312,7 @@ class ServiceProfileSerializer(serializers.ModelSerializer):
                   'employees_count',
                   'reviews',
                   'rating',
+                  'additions_in_favorite_count',
                   'is_favorited')
         depth = 5
 
@@ -412,21 +400,23 @@ class ServiceProfileSerializer(serializers.ModelSerializer):
 
         return instance
     
-    def get_employees_count(self, service):
-        return 1 + service.employees.count()
+    def get_employees_count(self, service_profile):
+        return 1 + service_profile.employees.count()
 
     def get_is_favorited(self, service_profile):
         user = self.context['request'].user
-        if user.is_anonymous:
+        if user.is_anonymous or user.is_master:
             return False
-        return user.favorite_services.filter(
+        return user.client_profile.favorite_services.filter(
             service_profile=service_profile
         ).exists()
+    
+    def get_additions_in_favorite_count(self, service_profile):
+        return service_profile.in_favorite_for_clients.all().count()
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
         data['categories'] = instance.categories.values()
-        data['service_type'] = instance.service_type.name
         return data
 
 

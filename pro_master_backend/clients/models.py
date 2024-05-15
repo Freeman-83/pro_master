@@ -43,4 +43,4 @@ class ClientProfile(models.Model):
         verbose_name_plural = 'Clients'
 
     def __str__(self):
-        return self.email
+        return self.client.email

@@ -126,7 +126,7 @@ class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
     list=extend_schema(summary='Список услуг'),
     retrieve=extend_schema(summary='Услуга'),
 )
-class ServiceViewSet(viewsets.ReadOnlyModelViewSet):
+class ServiceViewSet(viewsets.ModelViewSet):
     """Вьюсет Услуги."""
     queryset = Service.objects.all()
     serializer_class = ServiceSerializer

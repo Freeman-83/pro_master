@@ -20,7 +20,7 @@ router = routers.DefaultRouter()
 router.register('users', CustomUserViewSet, basename='users')
 
 router.register('categories', CategoryViewSet)
-router.register('services', ServiceProfileViewSet)
+router.register('service_profiles', ServiceProfileViewSet)
 router.register('clients', ClientProfileViewSet, basename='clients')
 router.register(
     r'services/(?P<profile_id>\d+)/images',

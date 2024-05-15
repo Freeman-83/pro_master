@@ -14,23 +14,6 @@ from clients.models import ClientProfile
 User = get_user_model()
 
 
-class ServiceType(models.Model):
-    """Модель Типа Сервиса."""
-    name = models.CharField(
-        'Наименование',
-        max_length=256,
-        unique=True
-    )
-
-    class Meta:
-        ordering = ['name']
-        verbose_name = 'OrganizationType'
-        verbose_name_plural = 'OrganizationTypes'
-
-    def __str__(self):
-        return self.name
-
-
 class Category(models.Model):
     """Модель Категории услуги."""
     name = models.CharField(
@@ -61,13 +44,6 @@ class Service(models.Model):
     name = models.CharField(
         'Наименование',
         max_length=500
-    )
-    category = models.ForeignKey(
-        Category,
-        on_delete=models.SET_NULL,
-        verbose_name='Категория',
-        related_name='services',
-        null=True
     )
     duration = models.PositiveIntegerField(
         'Длительность выполнения (мин)',
@@ -108,12 +84,6 @@ class ServiceProfile(models.Model):
         'Имя профиля',
         max_length=256
     )
-    service_type = models.ForeignKey(
-        ServiceType,
-        on_delete=models.CASCADE,
-        verbose_name='Тип сервиса',
-        related_name='service_profiles'
-    )
     categories = models.ManyToManyField(
         Category,
         through='ServiceProfileCategory',
@@ -130,6 +100,14 @@ class ServiceProfile(models.Model):
         verbose_name='Собственник',
         related_name='service_profiles'
     )
+    owner_first_name = models.CharField(
+        'Имя',
+        max_length=128,
+    )
+    owner_last_name = models.CharField(
+        'Фамилия',
+        max_length=128,
+    )
     description = models.TextField(
         'Описание сервиса'
     )
@@ -141,18 +119,6 @@ class ServiceProfile(models.Model):
     )
     phone_number = PhoneNumberField(
         'Контактный номер телефона'
-    )
-    first_name = models.CharField(
-        'Имя',
-        max_length=64,
-        null=True,
-        blank=True
-    )
-    last_name = models.CharField(
-        'Фамилия',
-        max_length=64,
-        null=True,
-        blank=True
     )
     site_address = models.URLField(
         'Адрес сайта',
