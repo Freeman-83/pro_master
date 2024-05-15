@@ -5,8 +5,9 @@ class IsAdminOrMasterOrReadOnly(permissions.BasePermission):
 
     def has_permission(self, request, view):
         return (request.method in permissions.SAFE_METHODS
-                or request.user.is_master
-                or request.user.is_staff)
+                or (request.user.is_authenticated
+                    and (request.user.is_master
+                         or request.user.is_staff)))
 
     def has_object_permission(self, request, view, obj):
         return (request.method in permissions.SAFE_METHODS
@@ -31,8 +32,9 @@ class IsAdminOrClientOrReadOnly(permissions.BasePermission):
 
     def has_permission(self, request, view):
         return (request.method in permissions.SAFE_METHODS
-                or request.user.is_staff
-                or not request.user.is_master)
+                or (request.user.is_authenticated
+                    and (request.user.is_staff
+                         or not request.user.is_master)))
 
     def has_object_permission(self, request, view, obj):
         return (request.method in permissions.SAFE_METHODS
