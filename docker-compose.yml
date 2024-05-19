@@ -1,0 +1,29 @@
+services:
+    db:
+        image: postgres:16.2
+        env_file: .env
+        volumes:
+            - db_volume:/var/lib/postgresql/data
+
+    backend:
+        build: ./pro_master_backend
+        # image:
+        env_file: .env
+        volumes:
+            - static_volume:/app/static
+        depends_on:
+            - db
+
+    gateway:
+        build: ./nginx
+        # image:
+        ports:
+            - 8000:80
+        volumes:
+            - static_volume:/var/html/static/
+        depends_on:
+            - backend
+
+volumes:
+    db_volume:
+    static_volume:
