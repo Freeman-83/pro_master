@@ -9,6 +9,7 @@ from .views import (AppointmentViewSet,
                     CustomUserViewSet,
                     ImageViewSet,
                     ReviewViewSet,
+                    ServiceViewSet,
                     ServiceProfileViewSet,
                     ScheduleViewSet)
 
@@ -19,6 +20,7 @@ router = routers.DefaultRouter()
 
 router.register('categories', CategoryViewSet)
 router.register('clients', ClientProfileViewSet, basename='clients')
+router.register('services', ServiceViewSet)
 router.register('service_profiles', ServiceProfileViewSet)
 router.register('users', CustomUserViewSet, basename='users')
 router.register(

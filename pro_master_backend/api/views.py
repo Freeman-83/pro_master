@@ -136,6 +136,7 @@ class ServiceViewSet(viewsets.ModelViewSet):
     serializer_class = ServiceSerializer
     filter_backends = (DjangoFilterBackend,)
     filterset_class = ServiceFilterSet
+    permission_classes = (permissions.AllowAny,)
 
 
 @extend_schema(tags=['Профили Сервисов'])

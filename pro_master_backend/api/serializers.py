@@ -140,16 +140,22 @@ class CategorySerializer(serializers.ModelSerializer):
         model = Category
         fields = ('id',
                   'name',
-                  'parent_category')
+                  'parent_category',
+                  'child_categories')
+        depth = 5
 
 
 class ServiceSerializer(serializers.ModelSerializer):
     """Сериализатор Услуги."""
+    category = serializers.PrimaryKeyRelatedField(
+        queryset=Category.objects.filter(child_categories=None)
+    )
 
     class Meta:
         model = Service
         fields = ('id',
                   'name',
+                  'category',
                   'duration',
                   'price')
 

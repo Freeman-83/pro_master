@@ -25,7 +25,7 @@ class Category(models.Model):
         'self',
         on_delete=models.PROTECT,
         verbose_name='Родительская категория',
-        related_name='categories',
+        related_name='child_categories',
         blank=True,
         null=True,
     )
@@ -45,6 +45,12 @@ class Service(models.Model):
     name = models.CharField(
         'Наименование',
         max_length=500
+    )
+    category = models.ForeignKey(
+        Category,
+        on_delete=models.PROTECT,
+        verbose_name='Категория',
+        related_name='services',
     )
     duration = models.PositiveIntegerField('Длительность выполнения (мин)')
     price = models.IntegerField('Стоимость услуги (руб)')
